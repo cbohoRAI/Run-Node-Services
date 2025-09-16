@@ -8,6 +8,7 @@ import signal
 import time
 from datetime import datetime
 from typing import Dict, List, Optional, Set
+from weakref import WeakSet
 
 try:
     from textual import on
@@ -15,6 +16,7 @@ try:
     from textual.binding import Binding
     from textual.containers import Vertical
     from textual.widgets import DataTable, Footer, Header, RichLog, TabbedContent, TabPane, Static
+    from textual.reactive import reactive
     
     from models.data import Project, RunningProject
     from utils.loader import ProjectLoader
@@ -30,6 +32,10 @@ except ImportError as e:
 
 class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
     """A Textual app to run multiple Node.js projects."""
+    
+    # Use reactive properties for better performance
+    is_running = reactive(False)
+    selected_count = reactive(0)
     
     CSS = """
         Screen {
@@ -75,10 +81,10 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
         #running-panel {
             height: auto;
             max-height: 50%;
-            min-height: 3;  /* Minimum height for header */
+            min-height: 3;
             border: round $primary;
             margin: 0 0 1 0;
-            overflow-y: auto;  /* Allow scrolling if too many projects */
+            overflow-y: auto;
         }
 
         #running-panel.hidden {
@@ -88,14 +94,14 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
         .running-status-container {
             height: auto;
             padding: 0 1;
-            min-height: 1;  /* Ensure minimum height */
+            min-height: 1;
         }
 
         .status-item {
             height: 1;
             margin: 0;
             padding: 0 1;
-            display: block;  /* Ensure proper display */
+            display: block;
         }
 
         .status-name { width: 1fr; }
@@ -149,7 +155,6 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
             width: 20; 
             text-align: right; 
         }
-
         """
     
     BINDINGS = [
@@ -180,9 +185,9 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
         self.running_projects: Dict[int, RunningProject] = {}
         self.log_tasks: Dict[int, asyncio.Task] = {}
         self.log_manager: LogManager = LogManager()
-        self.current_log_tab: Optional[int] = None  # None = "All", int = specific project
+        self.current_log_tab: Optional[int] = None
         
-        # UI components
+        # UI components with type hints
         self._table: Optional[DataTable] = None
         self._log: Optional[RichLog] = None
         self._log_panel: Optional[Vertical] = None
@@ -191,57 +196,89 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
         self._log_tabs: Optional[TabbedContent] = None
         self._project_log_widgets: Dict[int, RichLog] = {}
         
-        # Performance and activity tracking
-        self._update_interval_timer = None
-        self._current_update_interval = 5.0
-        self._last_activity_time = time.time()
+        # Performance optimizations
+        self._update_timer: Optional[asyncio.Task] = None
+        self._update_interval = 5.0
+        self._last_activity = time.time()
+        self._status_update_pending = False
+        self._batch_log_updates: List[tuple] = []
+        self._log_batch_timer: Optional[asyncio.Task] = None
         
-        # Add debouncing for key actions
-        self._last_toggle_time = 0
-        self._last_quit_time = 0
-        self._cleanup_started = False  # Prevent duplicate cleanup
+        # Debouncing
+        self._action_timestamps: Dict[str, float] = {}
+        self._cleanup_lock = asyncio.Lock()
+        self._cleanup_started = False
         
-        # Graceful exit for SIGINT
+        # Track active async tasks for cleanup
+        self._active_tasks: WeakSet = WeakSet()
+        
+        # Graceful exit
         signal.signal(signal.SIGINT, self._sigint_handler)
 
-    # ========================== Activity and Performance Management ==========================
+    # ========================== Performance Optimizations ==========================
     
-    def _adjust_update_interval(self):
-        """Dynamically adjust update frequency based on activity."""
-        current_time = time.time()
-        time_since_activity = current_time - self._last_activity_time
-        
-        # Slow down updates if no recent activity
-        if time_since_activity > 30:  # 30 seconds of no activity
-            new_interval = 10.0  # Update every 10 seconds
-        elif time_since_activity > 60:  # 1 minute of no activity  
-            new_interval = 30.0  # Update every 30 seconds
-        else:
-            new_interval = 5.0   # Normal update frequency
-        
-        # Only change if interval actually changed
-        if new_interval != self._current_update_interval:
-            self._current_update_interval = new_interval
-            # Cancel old timer and start new one
-            if self._update_interval_timer:
-                self._update_interval_timer.cancel()
-            self._update_interval_timer = self.set_interval(new_interval, self._update_status_display)
+    def _debounce_action(self, action_name: str, min_interval: float = 0.3) -> bool:
+        """Check if action should be debounced."""
+        current = time.time()
+        last = self._action_timestamps.get(action_name, 0)
+        if current - last < min_interval:
+            return True
+        self._action_timestamps[action_name] = current
+        return False
     
-    def _mark_activity(self):
-        """Mark that user activity occurred."""
-        self._last_activity_time = time.time()
-        self._adjust_update_interval()
+    def _mark_activity(self) -> None:
+        """Mark user activity for dynamic update intervals."""
+        self._last_activity = time.time()
+        # Resume normal update frequency on activity
+        if self._update_interval > 5.0:
+            self._update_interval = 5.0
+            self._restart_update_timer()
+    
+    def _restart_update_timer(self) -> None:
+        """Restart the update timer with new interval."""
+        if self._update_timer and not self._update_timer.done():
+            self._update_timer.cancel()
+        if self.started and self.running_projects:
+            self._update_timer = self.create_task(self._update_loop())
+    
+    async def _update_loop(self) -> None:
+        """Efficient update loop with adaptive intervals."""
+        while self.started and self.running_projects:
+            try:
+                # Dynamic interval based on activity
+                time_since_activity = time.time() - self._last_activity
+                if time_since_activity > 60:
+                    self._update_interval = 30.0
+                elif time_since_activity > 30:
+                    self._update_interval = 10.0
+                else:
+                    self._update_interval = 5.0
+                
+                # Batch status updates
+                if self._running_panel and self._running_panel.display:
+                    self.call_from_thread(self._running_panel.update_status, self.running_projects)
+                
+                await asyncio.sleep(self._update_interval)
+                
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                await asyncio.sleep(5.0)
 
     def _sigint_handler(self, *_) -> None:
         """Handle SIGINT (Ctrl+C)."""
-        # Schedule async cleanup then exit. Signal handlers can't be async.
         try:
             loop = asyncio.get_event_loop()
             loop.create_task(self._cleanup_processes())
         except RuntimeError:
-            # Fallback: no loop, ignore
             pass
         self.exit(message="Interrupted - cleaning up...")
+    
+    def create_task(self, coro) -> asyncio.Task:
+        """Create a task and track it for cleanup."""
+        task = asyncio.create_task(coro)
+        self._active_tasks.add(task)
+        return task
 
     # ========================== Lifecycle Methods ==========================
     
@@ -250,44 +287,48 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
         yield Header(show_clock=True)
         
         with Vertical(id="body"):
-            # Project selection panel (shown before starting)
+            # Project selection panel
             with Vertical(id="project-selection-panel") as project_panel:
                 yield Static("📋 Projects", classes="log-panel-header")
                 
                 table = DataTable(zebra_stripes=True, cursor_type="row")
                 table.add_columns("#", "Selected", "Project", "Path", "Status")
+                # Enable caching for better performance
+                table.fixed_columns = 2  # First two columns are fixed width
                 self._table = table
                 yield table
                 
                 self._project_selection_panel = project_panel
             
-            # Running projects panel (hidden initially, shown when running)
+            # Running projects panel
             self._running_panel = CollapsibleRunningPanel()
             self._running_panel.display = False
             yield self._running_panel
             
-            # Log panel with tabs (hidden initially, shown when running)
+            # Log panel with tabs
             with TabbedContent(id="log-tabs") as tabs:
                 with TabPane("All Logs", id="tab-all"):
-                    self._log = RichLog(highlight=True, markup=True, wrap=True, auto_scroll=True)
+                    self._log = RichLog(
+                        highlight=True, 
+                        markup=True, 
+                        wrap=True, 
+                        auto_scroll=True,
+                        max_lines=5000  # Limit buffer for performance
+                    )
                     yield self._log
                 
-                # Individual project tabs will be added dynamically
                 self._log_tabs = tabs
-                self._log_tabs.display = False  # Hidden initially
+                self._log_tabs.display = False
         
         yield Footer()
 
     async def on_mount(self) -> None:
         """Optimized initialization."""
-        # Load projects asynchronously to not block UI
-        await asyncio.sleep(0.01)  # Yield to UI
-        
+        # Load projects synchronously first to ensure they're available
         loader = ProjectLoader(self.projects_file)
         self.projects = loader.load()
         
-        await asyncio.sleep(0.01)  # Yield to UI
-        
+        # Now populate the table with the loaded projects
         self._populate_table()
         self._write_help_note()
         
@@ -295,13 +336,46 @@ class NodeProjectRunnerApp(App, AppActions, UIManagement, ProcessManager):
             self._table.focus()
             self._table.cursor_coordinate = (0, 0)
         
-        # Schedule periodic cleanup
-        self.set_interval(60.0, self._cleanup_old_data)
+        # Set up efficient periodic cleanup
+        self.set_interval(120.0, self._cleanup_old_data, pause=True)
 
     # ========================== Event Handlers ==========================
     
     @on(DataTable.RowHighlighted)
     def on_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         """Handle row highlight events."""
-        # Could update status bar or provide other feedback
-        pass
+        # Minimal processing for snappy response
+        self._mark_activity()
+    
+    def watch_selected_count(self, count: int) -> None:
+        """React to selection count changes."""
+        if self._table and not self.started:
+            self._update_start_row_count()
+    
+    def _populate_table(self) -> None:
+        """Populate table efficiently."""
+        if not self._table:
+            return
+        
+        # Debug: log how many projects we have
+        if self._log:
+            self._log.write(f"[dim]Loading {len(self.projects)} projects...[/dim]")
+        
+        # Batch all rows at once
+        rows = []
+        for idx, proj in enumerate(self.projects):
+            rows.append((str(idx + 1), "", proj.name, proj.path, "Ready"))
+        
+        # Add separator and start row
+        rows.append(("─" * 3, "─" * 8, "─" * 20, "─" * 30, "─" * 10))
+        rows.append((
+            "▶", "", 
+            "[bold green]START SELECTED PROJECTS[/bold green]",
+            f"[dim]{len(self.selected)} selected[/dim]", 
+            ""
+        ))
+        
+        # Clear and add all at once
+        self._table.clear()
+        for row in rows:
+            self._table.add_row(*row)

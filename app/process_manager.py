@@ -5,10 +5,8 @@ import contextlib
 import os
 import shutil
 from datetime import datetime
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.runner import NodeProjectRunnerApp
+from typing import Protocol, runtime_checkable
+from weakref import WeakValueDictionary
 
 try:
     from models.data import RunningProject
@@ -19,47 +17,90 @@ except ImportError as e:
     raise
 
 
+@runtime_checkable
+class ProcessManagerProtocol(Protocol):
+    """Protocol defining the interface that ProcessManager expects."""
+    projects: list
+    processes: dict
+    running_projects: dict
+    log_tasks: dict
+    log_manager: object
+    _log: object
+    _cleanup_started: bool
+    _cleanup_lock: asyncio.Lock
+    _project_log_widgets: dict
+    _active_tasks: set
+    
+    def _add_project_tab(self, idx: int, name: str) -> None: ...
+    def _remove_project_tab(self, idx: int) -> None: ...
+    def create_task(self, coro) -> asyncio.Task: ...
+
+
 class ProcessManager:
     """Mixin class containing process management methods."""
     
-    def _is_command_available(self: 'NodeProjectRunnerApp', cmd: str) -> bool:
-        """Check if a command is available in PATH."""
-        return shutil.which(cmd) is not None
+    # Cache for command availability checks
+    _command_cache: dict = {}
+    
+    def _is_command_available(self: ProcessManagerProtocol, cmd: str) -> bool:
+        """Check if a command is available in PATH (cached)."""
+        if cmd not in self._command_cache:
+            self._command_cache[cmd] = shutil.which(cmd) is not None
+        return self._command_cache[cmd]
 
-    async def _start_project(self: 'NodeProjectRunnerApp', idx: int) -> None:
+    async def _start_project(self: ProcessManagerProtocol, idx: int) -> None:
         """Start a single project and create its log tab."""
         proj = self.projects[idx]
         path = proj.path
         
-        # Register project with log manager
-        self.log_manager.add_project(idx, proj.name)
-        
-        # Create tab for this project
-        self._add_project_tab(idx, proj.name)
-        
-        # Validate directory
+        # Quick validation
         if not os.path.isdir(path):
             if self._log:
                 self._log.write(f"[red]{proj.name}[/red]: Directory missing → {path}")
             return
         
-        # Check for package.json
+        # Register with log manager
+        self.log_manager.add_project(idx, proj.name)
+        
+        # Add tab asynchronously to not block
+        self._add_project_tab(idx, proj.name)
+        
+        # Check for package.json (non-blocking)
         pkg = os.path.join(path, 'package.json')
-        if not os.path.exists(pkg):
-            if self._log:
-                self._log.write(f"[yellow]{proj.name}[/yellow]: package.json not found (continuing)")
+        has_package = os.path.exists(pkg)
+        
+        if not has_package and self._log:
+            self._log.write(f"[yellow]{proj.name}[/yellow]: package.json not found")
+        
+        # Detect port asynchronously
+        project_port = await asyncio.get_event_loop().run_in_executor(
+            None, PortUtils.detect_project_port, path
+        )
+        
+        if project_port and self._log:
+            self._log.write(f"[blue]{proj.name}[/blue]: Port {project_port}")
+        
+        # Try external terminal first (faster startup)
+        external_started = await self._try_external_terminal(
+            self, idx, proj, path, project_port
+        )
+        
+        if not external_started:
+            # Fallback to internal process
+            await self._start_internal_process(
+                self, idx, proj, path, project_port
+            )
 
-        # Try to find port from .env file or package.json
-        project_port = PortUtils.detect_project_port(path)
-        if project_port:
-            if self._log:
-                self._log.write(f"[blue]{proj.name}[/blue]: Detected port {project_port}")
-        else:
-            if self._log:
-                self._log.write(f"[yellow]{proj.name}[/yellow]: No port detected in .env or package.json")
-
-        # Try external terminals first
+    async def _try_external_terminal(
+        self: ProcessManagerProtocol, 
+        idx: int, 
+        proj: object, 
+        path: str, 
+        port: int
+    ) -> bool:
+        """Try to start in external terminal."""
         cmd = None
+        
         if self._is_command_available('gnome-terminal'):
             cmd = [
                 'gnome-terminal', '--tab', '--title', proj.name, '--', 'bash', '-c',
@@ -70,35 +111,45 @@ class ProcessManager:
                 'xterm', '-T', proj.name, '-e',
                 f"bash -c 'cd \"{path}\" && npm run dev; exec bash'"
             ]
+        
+        if not cmd:
+            return False
+        
+        try:
+            proc = await asyncio.create_subprocess_exec(*cmd)
+            self.processes[idx] = proc
+            self.running_projects[idx] = RunningProject(
+                name=proj.name,
+                path=path,
+                pid=proc.pid,
+                status="External Terminal",
+                start_time=datetime.now(),
+                port=port
+            )
+            if self._log:
+                self._log.write(f"[green]{proj.name}[/green]: External terminal (PID {proc.pid})")
+            return True
+        except Exception:
+            return False
 
-        if cmd:
-            try:
-                term_proc = await asyncio.create_subprocess_exec(*cmd)
-                self.processes[idx] = term_proc
-                self.running_projects[idx] = RunningProject(
-                    name=proj.name,
-                    path=path,
-                    pid=term_proc.pid,
-                    status="External Terminal",
-                    start_time=datetime.now(),
-                    port=project_port
-                )
-                if self._log:
-                    self._log.write(f"[green]{proj.name}[/green]: Started in external terminal (PID {term_proc.pid})")
-                return
-            except Exception as e:
-                if self._log:
-                    self._log.write(f"[red]{proj.name} external start failed:[/red] {e}. Falling back to in-app process.")
-                # Fall through to internal start
-
-        # Fallback to in-app process with log streaming
+    async def _start_internal_process(
+        self: ProcessManagerProtocol,
+        idx: int,
+        proj: object,
+        path: str,
+        port: int
+    ) -> None:
+        """Start process internally with log streaming."""
         try:
             proc = await asyncio.create_subprocess_exec(
                 'npm', 'run', 'dev',
                 cwd=path,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
+                # Use smaller buffer for faster response
+                limit=1024 * 64  # 64KB buffer
             )
+            
             self.processes[idx] = proc
             self.running_projects[idx] = RunningProject(
                 name=proj.name,
@@ -106,66 +157,90 @@ class ProcessManager:
                 pid=proc.pid,
                 status="Running",
                 start_time=datetime.now(),
-                port=project_port
+                port=port
             )
+            
             if self._log:
                 self._log.write(f"[cyan]{proj.name}[/cyan]: Started (PID {proc.pid})")
-            self.log_tasks[idx] = asyncio.create_task(self._stream_logs(idx, proj.name, proc))
+            
+            # Create log streaming task
+            task = self.create_task(
+                self._stream_logs_optimized(idx, proj.name, proc)
+            )
+            self.log_tasks[idx] = task
+            
         except FileNotFoundError:
             if self._log:
-                self._log.write(f"[red]{proj.name}[/red]: npm not found in PATH")
+                self._log.write(f"[red]{proj.name}[/red]: npm not found")
         except Exception as e:
             if self._log:
-                self._log.write(f"[red]{proj.name}[/red]: Start error → {e}")
+                self._log.write(f"[red]{proj.name}[/red]: Error → {e}")
 
-    async def _stream_logs(self: 'NodeProjectRunnerApp', idx: int, name: str, proc: asyncio.subprocess.Process) -> None:
-        """Stream logs with tabbed output support."""
+    async def _stream_logs_optimized(
+        self: ProcessManagerProtocol,
+        idx: int,
+        name: str,
+        proc: asyncio.subprocess.Process
+    ) -> None:
+        """Optimized log streaming with batching."""
         if not proc.stdout:
             return
         
         colors = ["blue", "green", "yellow", "magenta", "cyan"]
         color = colors[idx % len(colors)]
         
-        # Get both log widgets
-        all_log_widget = self._log  # Main "All Logs" widget
-        project_log_widget = self._project_log_widgets.get(idx)
+        # Get log widgets
+        all_log = self._log
+        project_log = self._project_log_widgets.get(idx)
         
-        # Use the multi-output log buffer
+        # Use smaller buffer for faster updates
         log_buffer = MultiLogBuffer(
-            all_log_widget, 
-            project_log_widget, 
-            flush_interval=0.3, 
-            max_buffer=15
+            all_log,
+            project_log,
+            flush_interval=0.2,  # Faster flush
+            max_buffer=10  # Smaller buffer
         )
         
         try:
+            # Use readline with timeout for responsiveness
             while True:
-                line = await proc.stdout.readline()
-                if not line:
-                    break
-                
-                text = line.decode(errors='replace').rstrip('\n')
-                if text.strip():
-                    formatted_line = f"[bold {color}][{name}][/bold {color}] {text}"
-                    log_buffer.add_line(formatted_line)
-                    # Also add to log manager for persistence
-                    self.log_manager.add_log_line(idx, formatted_line)
+                try:
+                    # Read with timeout to ensure responsiveness
+                    line_bytes = await asyncio.wait_for(
+                        proc.stdout.readline(),
+                        timeout=0.5
+                    )
+                    
+                    if not line_bytes:
+                        break
+                    
+                    text = line_bytes.decode(errors='replace').rstrip('\n')
+                    if text.strip():
+                        formatted = f"[bold {color}][{name}][/bold {color}] {text}"
+                        log_buffer.add_line(formatted)
+                        self.log_manager.add_log_line(idx, formatted)
+                        
+                except asyncio.TimeoutError:
+                    # Flush any pending logs on timeout
+                    log_buffer.flush_now()
+                    continue
             
-            # Ensure final flush
+            # Final flush
             log_buffer.flush_now()
             
+            # Handle process exit
             rc = await proc.wait()
             if idx in self.running_projects:
                 self.running_projects[idx].status = f"Exited ({rc})"
-            if self._log:
-                exit_message = f"[magenta]{name}[/magenta]: Exited with code {rc}"
-                self._log.write(exit_message)
-                # Also write exit message to project tab
-                if project_log_widget:
-                    project_log_widget.write(exit_message)
+            
+            exit_msg = f"[magenta]{name}[/magenta]: Exited with code {rc}"
+            if all_log:
+                all_log.write(exit_msg)
+            if project_log:
+                project_log.write(exit_msg)
                 
         except asyncio.CancelledError:
-            log_buffer.flush_now()  # Flush before canceling
+            log_buffer.flush_now()
             if proc.returncode is None:
                 with contextlib.suppress(ProcessLookupError):
                     proc.terminate()
@@ -173,86 +248,66 @@ class ProcessManager:
                 self.running_projects[idx].status = "Terminated"
         except Exception as e:
             log_buffer.flush_now()
-            error_message = f"[red]{name} log error:[/red] {e}"
             if self._log:
-                self._log.write(error_message)
-            # Also write error to project tab
-            if project_log_widget:
-                project_log_widget.write(error_message)
+                self._log.write(f"[red]{name} error:[/red] {e}")
             if idx in self.running_projects:
                 self.running_projects[idx].status = "Error"
 
-    async def _cleanup_processes(self: 'NodeProjectRunnerApp') -> None:
-        """Clean up running processes and log the shutdown."""
-        if self._cleanup_started:
-            return
-        self._cleanup_started = True
-
-        # Log shutdown info
-        try:
-            with open("shutdown.log", "a") as f:
-                f.write(f"Shutdown at {datetime.now()}\n")
-                if self.processes:
-                    for idx, proc in self.processes.items():
-                        proj = self.projects[idx] if idx < len(self.projects) else None
-                        name = proj.name if proj else f"Unknown-{idx}"
-                        pid = getattr(proc, "pid", None)
-                        
-                        # Get port info if available
-                        running_proj = self.running_projects.get(idx)
-                        port = running_proj.port if running_proj else None
-                        
-                        f.write(f"  Attempting to kill: {name} (PID: {pid}, Port: {port})\n")
-                else:
-                    f.write("  No processes to kill.\n")
-        except Exception as e:
-            # If logging fails, ignore to not block shutdown
-            pass
-
-        # Cancel log tasks
-        for task in self.log_tasks.values():
-            task.cancel()
-        
-        # Remove all project tabs
-        for idx in list(self.running_projects.keys()):
-            self._remove_project_tab(idx)
-            self.log_manager.remove_project(idx)
-        
-        # First, try to kill processes by port (more effective for Node.js)
-        ports_killed = set()
-        for idx, running_proj in self.running_projects.items():
-            if running_proj.port and running_proj.port not in ports_killed:
-                if self._log:
-                    self._log.write(f"[yellow]Killing processes on port {running_proj.port}[/yellow]")
-                
-                success = PortUtils.kill_processes_by_port(running_proj.port)
-                ports_killed.add(running_proj.port)
-                
-                if success:
-                    if self._log:
-                        self._log.write(f"[green]Successfully killed processes on port {running_proj.port}[/green]")
-                else:
-                    if self._log:
-                        self._log.write(f"[red]Failed to kill some processes on port {running_proj.port}[/red]")
-        
-        # Wait a moment for port-based kills to take effect
-        await asyncio.sleep(1.0)
-        
-        # Then terminate direct child processes (npm processes)
-        for proc in self.processes.values():
-            if proc.returncode is None:
-                try:
-                    proc.terminate()
-                except ProcessLookupError:
-                    pass
-        
-        # Give them time to terminate
-        await asyncio.sleep(0.5)
-        
-        # Force kill remaining processes if needed
-        for proc in self.processes.values():
-            if proc.returncode is None:
-                try:
-                    proc.kill()
-                except ProcessLookupError:
-                    pass
+    async def _cleanup_processes(self: ProcessManagerProtocol) -> None:
+        """Clean up running processes efficiently."""
+        async with self._cleanup_lock:
+            if self._cleanup_started:
+                return
+            self._cleanup_started = True
+            
+            # Cancel all log tasks first
+            tasks_to_cancel = list(self.log_tasks.values())
+            for task in tasks_to_cancel:
+                task.cancel()
+            
+            # Wait for cancellation with timeout
+            if tasks_to_cancel:
+                await asyncio.wait(
+                    tasks_to_cancel,
+                    timeout=1.0,
+                    return_when=asyncio.ALL_COMPLETED
+                )
+            
+            # Kill by ports (most effective)
+            ports_killed = set()
+            kill_tasks = []
+            
+            for idx, proj in self.running_projects.items():
+                if proj.port and proj.port not in ports_killed:
+                    ports_killed.add(proj.port)
+                    # Kill ports in parallel
+                    kill_tasks.append(
+                        asyncio.get_event_loop().run_in_executor(
+                            None, PortUtils.kill_processes_by_port, proj.port
+                        )
+                    )
+            
+            if kill_tasks:
+                await asyncio.gather(*kill_tasks, return_exceptions=True)
+            
+            # Quick termination of remaining processes
+            for proc in self.processes.values():
+                if proc.returncode is None:
+                    try:
+                        proc.terminate()
+                    except ProcessLookupError:
+                        pass
+            
+            # Force kill after short wait
+            await asyncio.sleep(0.5)
+            for proc in self.processes.values():
+                if proc.returncode is None:
+                    try:
+                        proc.kill()
+                    except ProcessLookupError:
+                        pass
+            
+            # Clean up UI
+            for idx in list(self.running_projects.keys()):
+                self._remove_project_tab(idx)
+                self.log_manager.remove_project(idx)

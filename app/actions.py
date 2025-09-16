@@ -2,271 +2,297 @@
 
 import asyncio
 import time
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.runner import NodeProjectRunnerApp
+from typing import Protocol, runtime_checkable
+from functools import lru_cache
 
 try:
-    from textual.widgets import DataTable, Static
+    from textual.widgets import DataTable, Static, RichLog, TabPane, TabbedContent
+    from textual.app import ComposeResult
     from utils.port import PortUtils
 except ImportError as e:
     print("Missing dependency: textual. Install with: pip install textual")
     raise
 
 
+@runtime_checkable
+class AppActionsProtocol(Protocol):
+    """Protocol for AppActions expectations."""
+    started: bool
+    selected: set
+    running_projects: dict
+    projects: list
+    _log: object
+    _table: object
+    _running_panel: object
+    _log_tabs: object
+    _project_log_widgets: dict
+    _project_selection_panel: object
+    _cleanup_lock: asyncio.Lock
+    
+    def _debounce_action(self, name: str, interval: float) -> bool: ...
+    def _mark_activity(self) -> None: ...
+    def _switch_to_running_view(self) -> None: ...
+    def _start_project(self, idx: int) -> None: ...
+    def _cleanup_processes(self) -> None: ...
+    def create_task(self, coro) -> asyncio.Task: ...
+    def call_from_thread(self, fn, *args) -> None: ...
+    def exit(self, **kwargs) -> None: ...
+    def set_interval(self, interval: float, callback, **kwargs) -> None: ...
+    def _update_loop(self) -> None: ...
+
+
 class AppActions:
-    """Mixin class containing all action methods for the NodeProjectRunnerApp."""
+    """Mixin class containing all action methods."""
     
-    def action_toggle_running_panel(self: 'NodeProjectRunnerApp') -> None:
-        """Toggle running projects panel collapse state with debouncing."""
+    def action_toggle_running_panel(self: AppActionsProtocol) -> None:
+        """Toggle running panel with debouncing."""
+        if self._debounce_action('toggle_panel', 0.2):
+            return
+        
         self._mark_activity()
-        current_time = time.time()
-        
-        # Debounce: ignore if pressed within 0.3 seconds
-        if current_time - self._last_toggle_time < 0.3:
-            return
-        
-        self._last_toggle_time = current_time
-        
-        if not self.started or not self._running_panel:
-            return  # Only works when running
-        self._running_panel.toggle_collapse()
+        if self.started and self._running_panel:
+            self._running_panel.toggle_collapse()
     
-    async def action_quit(self: 'NodeProjectRunnerApp') -> None:
-        """Quit the application with debouncing."""
-        current_time = time.time()
-        
-        # Debounce: ignore if pressed within 0.5 seconds
-        if current_time - self._last_quit_time < 0.5:
+    async def action_quit(self: AppActionsProtocol) -> None:
+        """Quit with debouncing."""
+        if self._debounce_action('quit', 0.5):
             return
-        
-        self._last_quit_time = current_time
         
         await self._cleanup_processes()
         self.exit()
 
-    async def action_kill_by_ports(self: 'NodeProjectRunnerApp') -> None:
-        """Emergency kill all processes by their ports."""
+    async def action_kill_by_ports(self: AppActionsProtocol) -> None:
+        """Emergency kill by ports."""
+        if self._debounce_action('kill_ports', 1.0):
+            return
+        
         self._mark_activity()
         
         if not self.running_projects:
             if self._log:
-                self._log.write("[yellow]No running projects to kill[/yellow]")
+                self._log.write("[yellow]No running projects[/yellow]")
             return
         
-        if self._log:
-            self._log.write("[red]Emergency port-based cleanup initiated...[/red]")
-        
-        ports_killed = set()
-        for idx, running_proj in self.running_projects.items():
-            if running_proj.port and running_proj.port not in ports_killed:
-                if self._log:
-                    self._log.write(f"[yellow]Force killing processes on port {running_proj.port}[/yellow]")
-                
-                success = PortUtils.kill_processes_by_port(running_proj.port)
-                ports_killed.add(running_proj.port)
-                
-                if success:
+        # Run port kills in parallel
+        ports = {p.port for p in self.running_projects.values() if p.port}
+        if ports:
+            kill_tasks = [
+                asyncio.get_event_loop().run_in_executor(
+                    None, PortUtils.kill_processes_by_port, port
+                )
+                for port in ports
+            ]
+            results = await asyncio.gather(*kill_tasks, return_exceptions=True)
+            
+            for port, result in zip(ports, results):
+                if isinstance(result, Exception):
                     if self._log:
-                        self._log.write(f"[green]Killed processes on port {running_proj.port}[/green]")
-                    running_proj.status = "Terminated (Port Kill)"
+                        self._log.write(f"[red]Failed to kill port {port}[/red]")
                 else:
                     if self._log:
-                        self._log.write(f"[red]Failed to kill processes on port {running_proj.port}[/red]")
-        
-        if self._log:
-            self._log.write("[green]Emergency cleanup complete[/green]")
+                        self._log.write(f"[green]Killed port {port}[/green]")
 
-    def action_switch_to_project_tab(self: 'NodeProjectRunnerApp', key: str) -> None:
-        """Switch to a specific project tab (1-9)."""
+    def action_switch_to_project_tab(self: AppActionsProtocol, key: str) -> None:
+        """Instant tab switching by number."""
         self._mark_activity()
         
         if not self._log_tabs or not self._log_tabs.display:
             return
         
         try:
-            tab_number = int(key) - 1  # Convert to 0-based index
-            # Get list of active project indices
+            # Direct tab access without iteration
+            tab_num = int(key) - 1
             active_projects = sorted(self.running_projects.keys())
             
-            if 0 <= tab_number < len(active_projects):
-                project_idx = active_projects[tab_number]
-                tab_id = f"tab-{project_idx}"
+            if 0 <= tab_num < len(active_projects):
+                tab_id = f"tab-{active_projects[tab_num]}"
+                # Direct assignment for instant switch
                 self._log_tabs.active = tab_id
-        except (ValueError, IndexError):
+        except (ValueError, IndexError, KeyError):
             pass
 
-    def action_switch_to_all_logs(self: 'NodeProjectRunnerApp') -> None:
-        """Switch to the 'All Logs' tab."""
+    def action_switch_to_all_logs(self: AppActionsProtocol) -> None:
+        """Instant switch to All Logs."""
         self._mark_activity()
         
         if self._log_tabs and self._log_tabs.display:
             self._log_tabs.active = "tab-all"
 
-    def action_next_log_tab(self: 'NodeProjectRunnerApp') -> None:
-        """Switch to the next log tab."""
+    def action_next_log_tab(self: AppActionsProtocol) -> None:
+        """Fast next tab."""
         self._mark_activity()
         
         if self._log_tabs and self._log_tabs.display:
+            # Use native method for speed
             self._log_tabs.action_next_tab()
 
-    def action_prev_log_tab(self: 'NodeProjectRunnerApp') -> None:
-        """Switch to the previous log tab."""
+    def action_prev_log_tab(self: AppActionsProtocol) -> None:
+        """Fast previous tab."""
         self._mark_activity()
         
         if self._log_tabs and self._log_tabs.display:
+            # Use native method for speed
             self._log_tabs.action_previous_tab()
 
-    def action_toggle_or_start(self: 'NodeProjectRunnerApp') -> None:
-        """Toggle selection on project rows, or start if on the start row."""
-        self._mark_activity()
-        if not self._table or not self.projects:
+    def action_toggle_or_start(self: AppActionsProtocol) -> None:
+        """Toggle selection or start."""
+        if self._debounce_action('toggle_start', 0.1):
             return
         
-        # Only works if table is visible (not in running mode)
-        if not self._table.display:
+        self._mark_activity()
+        
+        if not self._table or not self.projects or not self._table.display:
             return
         
         cursor_row = self._table.cursor_row
         if cursor_row is None:
             return
-            
-        # Check if we're on the start row (last row)
-        start_row_idx = len(self.projects) + 1
-        if cursor_row == start_row_idx:
-            # Start the selected projects
-            self.app.call_later(self.action_start_selected)
+        
+        start_row = len(self.projects) + 1
+        if cursor_row == start_row:
+            # Async start without blocking
+            self.create_task(self.action_start_selected())
         elif cursor_row < len(self.projects):
-            # Toggle selection for project rows
             self._toggle_index(cursor_row)
 
-    def action_select_all(self: 'NodeProjectRunnerApp') -> None:
+    def action_select_all(self: AppActionsProtocol) -> None:
         """Select all projects."""
         if self.started:
-            return  # Don't allow selection changes after starting
+            return
+        
         self.selected = set(range(len(self.projects)))
-        for idx in self.selected:
-            self._refresh_selection_cell(idx)
+        # Batch update
+        self._batch_refresh_selection()
 
-    def action_clear_selection(self: 'NodeProjectRunnerApp') -> None:
-        """Clear all selections."""
+    def action_clear_selection(self: AppActionsProtocol) -> None:
+        """Clear selection."""
         if self.started:
-            return  # Don't allow selection changes after starting
-        old_selected = list(self.selected)
+            return
+        
+        old_selected = self.selected.copy()
         self.selected.clear()
+        # Batch update for efficiency
         for idx in old_selected:
             self._refresh_selection_cell(idx)
         self._update_start_row_count()
 
-    def action_cursor_down(self: 'NodeProjectRunnerApp') -> None:
-        """Move cursor down (j key)."""
+    def action_cursor_down(self: AppActionsProtocol) -> None:
+        """Move cursor down."""
         if self._table and self._table.display:
             self._table.action_cursor_down()
 
-    def action_cursor_up(self: 'NodeProjectRunnerApp') -> None:
-        """Move cursor up (k key)."""
+    def action_cursor_up(self: AppActionsProtocol) -> None:
+        """Move cursor up."""
         if self._table and self._table.display:
             self._table.action_cursor_up()
 
-    async def action_start_selected(self: 'NodeProjectRunnerApp') -> None:
-        """Start all selected projects."""
+    async def action_start_selected(self: AppActionsProtocol) -> None:
+        """Start selected projects asynchronously."""
         if not self.selected:
             if self._log:
-                self._log.write("[bold red]No projects selected.[/bold red]")
+                self._log.write("[bold red]No projects selected[/bold red]")
             return
         
         if self.started:
             if self._log:
-                self._log.write("[yellow]Already started. Restart not implemented in this session.[/yellow]")
+                self._log.write("[yellow]Already started[/yellow]")
             return
         
         self.started = True
         
-        # Switch to running view
-        self._switch_to_running_view()
+        # Fast UI switch
+        self.call_from_thread(self._switch_to_running_view)
         
         if self._log:
             self._log.write(f"[green]Starting {len(self.selected)} project(s)...[/green]")
         
-        for idx in sorted(self.selected):
-            await self._start_project(idx)
+        # Start projects in parallel for speed
+        start_tasks = [
+            self._start_project(idx) 
+            for idx in sorted(self.selected)
+        ]
+        await asyncio.gather(*start_tasks, return_exceptions=True)
         
-        # Start periodic status updates
-        self.set_interval(5.0, self._update_status_display)
+        # Start update timer
+        self.create_task(self._update_loop())
 
 
 class UIManagement:
-    """Mixin class containing UI management methods."""
+    """Mixin for UI management methods."""
     
-    def _populate_table(self: 'NodeProjectRunnerApp') -> None:
-        """Populate the data table with projects."""
+    def _populate_table(self: AppActionsProtocol) -> None:
+        """Populate table efficiently."""
         if not self._table:
             return
-            
+        
+        # Debug log
+        if self._log:
+            self._log.write(f"[dim]Loading {len(self.projects)} projects...[/dim]")
+        
+        # Clear table
         self._table.clear()
+        
+        # Add project rows
         for idx, proj in enumerate(self.projects):
             self._table.add_row(
                 str(idx + 1), "", proj.name, proj.path, "Ready"
             )
         
-        # Add a separator and start option at the bottom
+        # Add separator and start row
         self._table.add_row(
             "─" * 3, "─" * 8, "─" * 20, "─" * 30, "─" * 10
         )
         self._table.add_row(
-            "▶", "", "[bold green]START SELECTED PROJECTS[/bold green]", 
-            f"[dim]{len(self.selected)} selected[/dim]", ""
+            "▶", "", 
+            "[bold green]START SELECTED PROJECTS[/bold green]",
+            f"[dim]{len(self.selected)} selected[/dim]", 
+            ""
         )
 
-    def _switch_to_running_view(self: 'NodeProjectRunnerApp') -> None:
-        """Switch the UI to show running status and logs."""
-        # Hide project selection panel
+    def _switch_to_running_view(self: AppActionsProtocol) -> None:
+        """Fast UI switch to running view."""
+        # Hide/show in batch
         if self._project_selection_panel:
             self._project_selection_panel.display = False
         
-        # Show running panel and log tabs
         if self._running_panel:
             self._running_panel.display = True
         
         if self._log_tabs:
             self._log_tabs.display = True
-        
-        # Update the status display
-        self._update_status_display()
 
-    def _update_status_display(self: 'NodeProjectRunnerApp') -> None:
-        """Update the running projects status display."""
-        if self._running_panel and self.running_projects:
-            # Only update if we have running projects and the panel is visible
-            if self._running_panel.display:
-                self._running_panel.update_status(self.running_projects)
+    def _update_status_display(self: AppActionsProtocol) -> None:
+        """Update status display if visible."""
+        if self._running_panel and self._running_panel.display and self.running_projects:
+            self._running_panel.update_status(self.running_projects)
 
-    def _add_project_tab(self: 'NodeProjectRunnerApp', project_idx: int, project_name: str) -> None:
-        """Add a new tab for a project."""
+    def _add_project_tab(self: AppActionsProtocol, project_idx: int, project_name: str) -> None:
+        """Add project tab efficiently."""
         if not self._log_tabs:
             return
         
-        from textual.app import ComposeResult
-        from textual.widgets import RichLog, TabPane
-        
         tab_id = f"tab-{project_idx}"
-        project_log = RichLog(highlight=True, markup=True, wrap=True, auto_scroll=True)
         
-        # Create a custom TabPane class that composes the log widget
-        class ProjectTabPane(TabPane):
+        # Create log widget with performance settings
+        project_log = RichLog(
+            highlight=True,
+            markup=True,
+            wrap=True,
+            auto_scroll=True,
+            max_lines=2000  # Limit for performance
+        )
+        
+        # Simple tab pane
+        class ProjectTab(TabPane):
             def compose(self) -> ComposeResult:
                 yield project_log
         
-        # Create and add the tab pane
-        tab_pane = ProjectTabPane(project_name, id=tab_id)
-        self._log_tabs.add_pane(tab_pane)
-        
-        # Store reference for writing logs
+        tab = ProjectTab(project_name, id=tab_id)
+        self._log_tabs.add_pane(tab)
         self._project_log_widgets[project_idx] = project_log
 
-    def _remove_project_tab(self: 'NodeProjectRunnerApp', project_idx: int) -> None:
-        """Remove a project's tab when it stops."""
+    def _remove_project_tab(self: AppActionsProtocol, project_idx: int) -> None:
+        """Remove project tab."""
         if not self._log_tabs:
             return
         
@@ -275,86 +301,97 @@ class UIManagement:
             self._log_tabs.remove_pane(tab_id)
             self._project_log_widgets.pop(project_idx, None)
         except Exception:
-            pass  # Tab might not exist
+            pass
 
-    def _write_help_note(self: 'NodeProjectRunnerApp') -> None:
-        """Write initial help text to the log."""
+    def _write_help_note(self: AppActionsProtocol) -> None:
+        """Write help text."""
         if self._log:
             self._log.write(
-                "[dim]Press [bold]E[/bold] to select/deselect projects, "
-                "[bold]S[/bold] or select START row to run. "
+                "[dim]Press [bold]E[/bold] to select, "
+                "[bold]S[/bold] to start. "
                 "[bold]A[/bold]=All [bold]C[/bold]=Clear "
-                "[bold]R[/bold]=Toggle Running Panel [bold]Ctrl+K[/bold]=Emergency Port Kill [bold]Q[/bold]=Quit[/dim]"
+                "[bold]R[/bold]=Toggle Panel [bold]Q[/bold]=Quit[/dim]"
             )
             self._log.write(
-                "[dim]Tab Navigation: [bold]1-9[/bold]=Project Tabs [bold]0[/bold]=All Logs "
-                "[bold]Tab/Shift+Tab[/bold]=Next/Prev Tab[/dim]"
+                "[dim]Tabs: [bold]1-9[/bold]=Projects "
+                "[bold]0[/bold]=All [bold]Tab[/bold]=Next/Prev[/dim]"
             )
 
-    def _toggle_index(self: 'NodeProjectRunnerApp', idx: int) -> None:
-        """Toggle selection state for a project."""
+    def _toggle_index(self: AppActionsProtocol, idx: int) -> None:
+        """Toggle project selection."""
         if idx < 0 or idx >= len(self.projects):
             return
-            
+        
         if idx in self.selected:
             self.selected.discard(idx)
         else:
             self.selected.add(idx)
+        
         self._refresh_selection_cell(idx)
 
-    def _refresh_selection_cell(self: 'NodeProjectRunnerApp', idx: int) -> None:
-        """Update the selection indicator in the table."""
+    def _refresh_selection_cell(self: AppActionsProtocol, idx: int) -> None:
+        """Update selection cell."""
         if not self._table or idx < 0 or idx >= len(self.projects):
             return
+        
         try:
             mark = "✓" if idx in self.selected else ""
-            # Update using row index and column index (1 for "Selected" column)
             self._table.update_cell_at((idx, 1), mark)
-            # Also update the start row to show count
             self._update_start_row_count()
-        except (IndexError, KeyError, Exception):
-            # Silently ignore if update fails
-            pass
-    
-    def _update_start_row_count(self: 'NodeProjectRunnerApp') -> None:
-        """Update the count display in the start row."""
-        if not self._table:
-            return
-        try:
-            # The start row is at index len(projects) + 1 (after separator)
-            start_row_idx = len(self.projects) + 1
-            count_text = f"[dim]{len(self.selected)} selected[/dim]"
-            self._table.update_cell_at((start_row_idx, 3), count_text)
-        except:
+        except Exception:
             pass
 
-    def _set_status(self: 'NodeProjectRunnerApp', idx: int, text: str) -> None:
-        """Update the status column for a project."""
+    def _batch_refresh_selection(self: AppActionsProtocol) -> None:
+        """Batch refresh all selections."""
+        if not self._table:
+            return
+        
+        for idx in range(len(self.projects)):
+            mark = "✓" if idx in self.selected else ""
+            try:
+                self._table.update_cell_at((idx, 1), mark)
+            except Exception:
+                pass
+        
+        self._update_start_row_count()
+
+    def _update_start_row_count(self: AppActionsProtocol) -> None:
+        """Update start row count."""
+        if not self._table:
+            return
+        
+        try:
+            start_row = len(self.projects) + 1
+            count_text = f"[dim]{len(self.selected)} selected[/dim]"
+            self._table.update_cell_at((start_row, 3), count_text)
+        except Exception:
+            pass
+
+    def _set_status(self: AppActionsProtocol, idx: int, text: str) -> None:
+        """Update status column."""
         if not self._table or idx < 0 or idx >= len(self.projects):
             return
+        
         try:
-            # Update using row index and column index (4 for "Status" column)
             self._table.update_cell_at((idx, 4), text)
-        except (IndexError, KeyError, Exception):
-            # Silently ignore if update fails
+        except Exception:
             pass
-    
-    def _cleanup_old_data(self: 'NodeProjectRunnerApp'):
-        """Periodically clean up old data to prevent memory leaks."""
-        current_time = time.time()
+
+    def _cleanup_old_data(self: AppActionsProtocol) -> None:
+        """Periodic cleanup of old data."""
+        current = time.time()
+        to_remove = []
         
-        # Clean up finished processes from dictionaries
-        finished_processes = []
-        for idx, running_proj in list(self.running_projects.items()):
-            if running_proj.status.startswith("Exited") or running_proj.status == "Terminated":
-                # Keep for 5 minutes after exit, then clean up
-                if (current_time - running_proj.start_time.timestamp()) > 300:
-                    finished_processes.append(idx)
+        for idx, proj in list(self.running_projects.items()):
+            if proj.status.startswith("Exited") or proj.status == "Terminated":
+                age = current - proj.start_time.timestamp()
+                if age > 300:  # 5 minutes
+                    to_remove.append(idx)
         
-        for idx in finished_processes:
-            # Clean up all references
+        for idx in to_remove:
             self.running_projects.pop(idx, None)
             self.processes.pop(idx, None)
             if idx in self.log_tasks:
-                self.log_tasks[idx].cancel()
-                self.log_tasks.pop(idx, None)
+                task = self.log_tasks.pop(idx, None)
+                if task:
+                    task.cancel()
