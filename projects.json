@@ -1,0 +1,14 @@
+[
+  {
+    "name": "responsive-authentication",
+    "short_name": "RTA",
+    "path": "~/Bitbucket/responsive-authentication-service",
+    "start_command": ["npm", "run", "dev"]
+  },
+  {
+    "name": "responsive-rapid-quoting",
+    "short_name": "RRQ",
+    "path": "~/Bitbucket/responsive-rapid-quoting",
+    "start_command": ["npm", "run", "dev"]
+  }
+]
