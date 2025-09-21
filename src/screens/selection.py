@@ -1,4 +1,4 @@
-"""Project selection screen (Phase 1)."""
+"""Project selection screen (Phase 1) - Enhanced to pass project details."""
 from __future__ import annotations
 
 from textual.app import ComposeResult
@@ -20,11 +20,12 @@ class ProjectSelectionScreen(Screen):
         ("q", "quit", "Quit"),
         ("enter", "start_selected", "Start Selected"),
         ("e", "toggle_select", "Toggle"),
+        ("space", "toggle_select", "Toggle"),
         ("r", "refresh", "Refresh"),
     ]
 
-    # Symbols defined at class-level (easy to theme later)
-    CHECKED_MARK = "[X]"  # could be replaced with "☑" / "✔" in later polish phase
+    # Symbols defined at class-level
+    CHECKED_MARK = "[X]"
     UNCHECKED_MARK = "[ ]"
 
     def __init__(self, root: Path, manager: ProcessManager, log_collector: LogCollector | None = None) -> None:
@@ -35,59 +36,63 @@ class ProjectSelectionScreen(Screen):
         self._selected: Dict[int, bool] = {}
         self._log: List[str] = []
         self._log_collector = log_collector or LogCollector()
-        # Map visible row index -> DataTable row key (RowKey)
-        self._row_keys = {}  # type: Dict[int, object]
+        self._row_keys = {}
 
     def compose(self) -> ComposeResult:
         self._table = DataTable(zebra_stripes=True)
         self._table.cursor_type = "row"
         yield self._table
-        self._log_widget = Static("", id="log")  # created but not shown yet
+        self._log_widget = Static("", id="log")
         self._log_widget.display = False
         yield self._log_widget
         yield Footer()
 
     def on_mount(self) -> None:
         self._logs_active = False
-        self._table.add_columns("Select", "Nickname", "Name", "Port", "Branch")
+        self._table.add_columns("Select", "Short", "Name", "Port", "Branch")
         self.refresh_projects()
-        # Ensure table is focused immediately so movement keys work on first press
         self.set_focus(self._table)
 
     def refresh_projects(self) -> None:
         self._projects = discover_projects(self._root)
-        self._selected.clear()  # reset selection on full refresh (could preserve later)
-        # Build rows fresh
+        self._selected.clear()
         self._row_keys.clear()
         self._table.clear()
+        
         for idx, p in enumerate(self._projects):
-            nickname = getattr(p, "short_name", None) or "-"
-            row_key = self._table.add_row(self.UNCHECKED_MARK, nickname, p.name, str(p.port or "-"), p.git_branch or "-")
+            nickname = getattr(p, "short_name", None) or "−"
+            port_display = str(p.port) if p.port else "−"
+            branch_display = p.git_branch if p.git_branch else "−"
+            
+            row_key = self._table.add_row(
+                self.UNCHECKED_MARK, 
+                nickname, 
+                p.name, 
+                port_display,
+                branch_display
+            )
             self._row_keys[idx] = row_key
-        # Add special start row (non-selectable marker row index == len(projects))
+        
+        # Add special start row
         self._start_row_key = self._table.add_row("→", "", "Start Selected Projects", "", "")
         self._table.refresh()
 
     def on_key(self, event: events.Key) -> None:
-        """Handle key events directly for immediate response."""
-        # Handle W/S keys for navigation
-        if event.key in ("w", "W"):
-            # Focus the table if not focused
+        """Handle key events for navigation."""
+        if event.key in ("space", "e", "E"):
+            self.action_toggle_select()
+            event.prevent_default()
+        elif event.key in ("w", "W"):
             if not self._table.has_focus:
                 self.set_focus(self._table)
-            # Use the DataTable's built-in action
             self._table.action_cursor_up()
             event.prevent_default()
         elif event.key in ("s", "S"):
-            # Focus the table if not focused
             if not self._table.has_focus:
                 self.set_focus(self._table)
-            # Use the DataTable's built-in action
             self._table.action_cursor_down()
             event.prevent_default()
         elif event.key == "enter":
-            # Fallback: trigger same as binding if not already handled
-            # Start selected if on normal row or start row
             asyncio.create_task(self.action_start_selected())
             event.prevent_default()
 
@@ -98,86 +103,109 @@ class ProjectSelectionScreen(Screen):
         if self._table.cursor_row is None:
             return
         row_index = self._table.cursor_row
-        # Hitting toggle on the special last row triggers start
+        
+        # Start row triggers start action
         if row_index == len(self._projects):
-            # Use async path identical to pressing enter
             asyncio.create_task(self.action_start_selected())
             return
+        
         row_key = self._row_keys.get(row_index)
         if row_key is None:
-            return  # safety
+            return
+        
         current = self._selected.get(row_index, False)
         self._selected[row_index] = not current
         self._rebuild_table_rows(self._table.cursor_row)
 
-    def _apply_selection_marks(self) -> None:
-        """Re-apply visual selection markers for current _selected mapping."""
-        self._rebuild_table_rows(self._table.cursor_row)
-
     def _rebuild_table_rows(self, cursor_before: int | None) -> None:
-        """Rebuild all table rows using documented remove_row / add_row pattern."""
-        # Remove existing rows using their keys
-        # Remove + rebuild: per Textual docs clear() removes data, then re-add
+        """Rebuild table rows with current selection state."""
         self._table.clear()
         self._row_keys.clear()
-        # Re-add rows with current selection state
+        
         for idx, p in enumerate(self._projects):
             sel_mark = self.CHECKED_MARK if self._selected.get(idx, False) else self.UNCHECKED_MARK
-            nickname = getattr(p, "short_name", None) or "-"
-            row_key_new = self._table.add_row(sel_mark, nickname, p.name, str(p.port or "-"), p.git_branch or "-")
+            nickname = getattr(p, "short_name", None) or "−"
+            port_display = str(p.port) if p.port else "−"
+            branch_display = p.git_branch if p.git_branch else "−"
+            
+            row_key_new = self._table.add_row(
+                sel_mark, 
+                nickname, 
+                p.name, 
+                port_display,
+                branch_display
+            )
             self._row_keys[idx] = row_key_new
-        # Add special start row again
+        
+        # Re-add start row
         self._start_row_key = self._table.add_row("→", "", "Start Selected Projects", "", "")
+        
         # Restore cursor
         if cursor_before is not None and cursor_before < (len(self._projects) + 1):
             self._table.cursor_coordinate = (cursor_before, 0)
         self._table.refresh()
 
     async def action_start_selected(self) -> None:
+        """Start selected projects and switch to monitoring screen."""
         chosen = [self._projects[i] for i, sel in self._selected.items() if sel]
-        if not chosen and self._table.cursor_row is not None:
+        
+        # If nothing selected, use the current row
+        if not chosen and self._table.cursor_row is not None and self._table.cursor_row < len(self._projects):
             chosen = [self._projects[self._table.cursor_row]]
+        
         if not chosen:
             return
+        
         self._append_log(f"Starting {len(chosen)} project(s)... switching to monitoring view")
 
-        async def cb_start(project: NodeProject) -> None:
-            await self._manager.start_project(
+        # Start each project
+        started_projects = []
+        for project in chosen:
+            success = await self._manager.start_project(
                 project.name,
                 project.path,
                 lambda pn, line: self._enqueue_log(pn, line),
                 command=project.start_command,
                 port=project.port,
             )
+            
+            if success:
+                # Create project info dict with all details
+                project_info = {
+                    'name': project.name,
+                    'port': project.port,
+                    'branch': project.git_branch
+                }
+                started_projects.append(project_info)
 
-        for project in chosen:
-            await cb_start(project)
-
-        # Push monitoring screen with list of started project names
-        self.app.push_screen(
-            MonitoringScreen(
-                self._manager,
-                self._log_collector,
-                [p.name for p in chosen],
+        if started_projects:
+            # Switch to monitoring screen with full project details
+            self.app.push_screen(
+                MonitoringScreen(
+                    self._manager,
+                    self._log_collector,
+                    started_projects,
+                )
             )
-        )
 
     def _enqueue_log(self, project_name: str, line: str) -> None:
-        # Add to collector (async safe) — fire and forget
+        """Queue log line for display."""
         asyncio.create_task(self._log_collector.add_line(project_name, line))
-        # Maintain legacy short log display until screen switch
         self._append_log(f"[{project_name}] {line}")
 
     def _append_log(self, line: str) -> None:
-        # Only reveal log widget after first real output
+        """Append log line to display buffer."""
         self._log.append(line)
         self._log = self._log[-200:]
+        
         if not self._logs_active:
             self._log_widget.display = True
             self._logs_active = True
-            if not self._log_widget.renderable:
-                pass
+        
         self._log_widget.update("\n".join(self._log))
 
-    def action_quit(self) -> None:  # type: ignore[override]
+    def action_quit(self) -> None:
+        """Exit the application."""
         self.app.exit()
+
+__all__ = ["ProjectSelectionScreen"]
