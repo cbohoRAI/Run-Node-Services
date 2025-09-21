@@ -139,6 +139,36 @@ Upcoming (not yet implemented in repo):
 
 ---
 
+## Phase 3 Progress (Initial Implementation)
+
+Implemented foundational monitoring UI components:
+
+1. New Monitoring Screen (`screens/monitoring.py`):
+    - Displays a collapsible running projects panel and a tabbed log viewer.
+    - Keyboard shortcuts: `p` toggle panel, `r` restart selected (currently all), `R` restart all, `s` stop all, `tab` cycle tabs, `1-9` quick tab switch (1 = All Logs).
+
+2. Log Collection (`core/log_collector.py`):
+    - Async ring buffer per project with timestamped entries and callback hook into UI.
+
+3. Widgets:
+    - `widgets/running_panel.py` shows status, port, branch placeholders.
+    - `widgets/log_viewer.py` simple tabbed content with an aggregate “All Logs” pane.
+    - `widgets/project_controls.py` (scaffolding for per‑project buttons; not yet wired into panel).
+
+4. Selection → Monitoring Transition:
+    - After starting selected projects on the selection screen, app switches automatically to monitoring screen.
+
+5. Status Model:
+    - `models/status.py` defines `ProjectStatus` enum with basic color mapping.
+
+Limitations / Next Steps:
+    - Per-project restart/stop buttons not yet embedded in running panel rows.
+    - Project ports/branches not fed live (needs integration with discovery metadata and manager mapping).
+    - No crash detection or dynamic status changes yet (will come with health monitoring in later phases).
+    - Log level coloring / search / filtering pending Phase 4 work.
+
+---
+
 
 ## Project Structure
 
