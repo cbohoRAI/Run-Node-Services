@@ -17,10 +17,6 @@ class ProjectSelectionScreen(Screen):
         ("q", "quit", "Quit"),
         ("enter", "start_selected", "Start Selected"),
         ("e", "toggle_select", "Toggle"),
-        ("w", "cursor_up", "Up"),
-        ("s", "cursor_down", "Down"),
-        ("W", "cursor_up", "Up"),
-        ("S", "cursor_down", "Down"),
         ("r", "refresh", "Refresh"),
     ]
 
@@ -56,7 +52,23 @@ class ProjectSelectionScreen(Screen):
             nickname = getattr(p, "short_name", None) or "-"
             self._table.add_row("[ ]", nickname, p.name, str(p.port or "-"), p.git_branch or "-")
 
-    # Removed toggle logs binding; logs appear only after first output
+    def on_key(self, event: events.Key) -> None:
+        """Handle key events directly for immediate response."""
+        # Handle W/S keys for navigation
+        if event.key in ("w", "W"):
+            # Focus the table if not focused
+            if not self._table.has_focus:
+                self.set_focus(self._table)
+            # Use the DataTable's built-in action
+            self._table.action_cursor_up()
+            event.prevent_default()
+        elif event.key in ("s", "S"):
+            # Focus the table if not focused
+            if not self._table.has_focus:
+                self.set_focus(self._table)
+            # Use the DataTable's built-in action
+            self._table.action_cursor_down()
+            event.prevent_default()
 
     def action_refresh(self) -> None:
         self.refresh_projects()
@@ -71,28 +83,6 @@ class ProjectSelectionScreen(Screen):
         row_data = list(self._table.get_row(row))
         row_data[0] = mark
         self._table.update_row(row, *row_data)
-
-    def action_cursor_up(self) -> None:
-        """Move the cursor up one row (wrapping not required)."""
-        # Guarantee focus so first key press moves immediately
-        self.set_focus(self._table)
-        if self._table.cursor_row is None:
-            # Initialize cursor at first row if there are rows
-            if len(self._table.rows):  # type: ignore[attr-defined]
-                self._table.cursor_coordinate = (0, 0)
-            return
-        if self._table.cursor_row > 0:
-            self._table.cursor_coordinate = (self._table.cursor_column or 0, self._table.cursor_row - 1)
-
-    def action_cursor_down(self) -> None:
-        """Move the cursor down one row (stop at last)."""
-        self.set_focus(self._table)
-        if self._table.cursor_row is None:
-            if len(self._table.rows):  # type: ignore[attr-defined]
-                self._table.cursor_coordinate = (0, 0)
-            return
-        if self._table.cursor_row < len(self._table.rows) - 1:  # type: ignore[attr-defined]
-            self._table.cursor_coordinate = (self._table.cursor_column or 0, self._table.cursor_row + 1)
 
     async def action_start_selected(self) -> None:
         chosen = [self._projects[i] for i, sel in self._selected.items() if sel]
