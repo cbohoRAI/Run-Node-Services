@@ -109,6 +109,36 @@ Explicit configuration offers:
 
 > Tip: Keep a `projects.example.json` checked in and add `projects.json` to `.gitignore` if paths are user-specific.
 
+## Phase 2 Progress (In Repository)
+
+Initial components of Phase 2 have been implemented:
+
+1. Port-Based Process Discovery:
+    - Added `src/core/port_scanner.py` with `find_process_by_port` and `kill_process_tree` utilities.
+    - Uses `psutil` primarily with lightweight fallbacks (`lsof`/`ss` on Unix, `netstat` on Windows) when needed.
+
+2. Enhanced Process Manager:
+    - `ProcessManager` now records the wrapper spawn PID and (optionally) the real listener PIDs discovered via the project port.
+    - Supports `restart_project(name)` which performs stop + start with port remapping.
+    - Graceful shutdown attempts followed by forced termination of process trees bound to the port.
+
+3. Signal Handling:
+    - `src/core/signal_handler.py` provides coordinated shutdown on SIGINT/SIGTERM (and SIGBREAK on Windows) to avoid orphaned processes.
+
+4. Tests Added:
+    - `tests/test_port_scanner.py` validates port discovery and process tree termination.
+    - Updated `tests/test_process_manager.py` to cover port-aware start/stop and restart flows.
+
+5. Backward Compatibility:
+    - Existing calls to `start_project(name, path, ...)` still work; callers can supply a `port` arg to enable full Phase 2 tracking.
+
+Upcoming (not yet implemented in repo):
+    - Automatic periodic reconciliation of listener PIDs
+    - Health monitoring loop & auto-restart policies
+    - More detailed status states (CRASHED, RESTARTING) surfaced to UI layer
+
+---
+
 
 ## Project Structure
 
