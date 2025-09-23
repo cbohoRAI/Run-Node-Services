@@ -12,6 +12,7 @@ from typing import List, Dict
 from src.core.project_discovery import discover_projects, NodeProject
 from src.core.process_manager import ProcessManager
 from src.core.log_collector import LogCollector
+from src.core.log_tap import attach_file_sink
 from src.screens.monitoring import MonitoringScreen
 
 
@@ -49,6 +50,11 @@ class ProjectSelectionScreen(Screen):
 
     def on_mount(self) -> None:
         self._logs_active = False
+        # DIAGNOSTIC: attach file sink once (idempotent assumption: single on_mount)
+        try:
+            attach_file_sink(self._log_collector, "logs/stream_capture.log")  # CHANGE: adds file logging
+        except Exception:
+            pass
         self._table.add_columns("Select", "Short", "Name", "Port", "Branch")
         self.refresh_projects()
         self.set_focus(self._table)
@@ -174,7 +180,8 @@ class ProjectSelectionScreen(Screen):
                 project_info = {
                     'name': project.name,
                     'port': project.port,
-                    'branch': project.git_branch
+                        'branch': project.git_branch,
+                        'short_name': getattr(project, 'short_name', None)
                 }
                 started_projects.append(project_info)
 

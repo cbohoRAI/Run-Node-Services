@@ -16,6 +16,14 @@ class LogCollector:
     def register_callback(self, cb: Callable[[str, str], None]) -> None:
         self._callbacks.append(cb)
 
+    def unregister_callback(self, cb):
+        """Remove a previously registered callback."""
+        try:
+            if cb in self._callbacks: 
+                self._callbacks.remove(cb)
+        except Exception:
+            pass
+
     def get_buffer(self, project: str) -> List[str]:
         buf = self._buffers.get(project)
         if not buf:
