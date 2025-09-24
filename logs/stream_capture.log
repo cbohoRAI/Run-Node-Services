@@ -1116,3 +1116,261 @@
 2025-09-24T12:53:48.946Z | responsive-rapid-rater | 12:53:48 (Use `node --trace-deprecation ...` to show where the warning was created)
 2025-09-24T12:53:49.141Z | responsive-rapid-rater | 12:53:49 (node:261543) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
 2025-09-24T12:53:49.572Z | responsive-rapid-rater | 12:53:49 info: Sep-24-2025 08:53:49: 	Connected to mongodb...
+2025-09-24T16:46:18.312Z | responsive-authentication | 16:46:18 
+2025-09-24T16:46:18.313Z | responsive-authentication | 16:46:18 > responsive-authentication-service@0.1.0 dev
+2025-09-24T16:46:18.313Z | responsive-authentication | 16:46:18 > nodemon app.js
+2025-09-24T16:46:18.313Z | responsive-authentication | 16:46:18 
+2025-09-24T16:46:18.493Z | responsive-authentication | 16:46:18 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:46:18.493Z | responsive-authentication | 16:46:18 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:46:18.496Z | responsive-authentication | 16:46:18 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:46:18.496Z | responsive-authentication | 16:46:18 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:46:18.496Z | responsive-authentication | 16:46:18 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:46:19.785Z | responsive-authentication | 16:46:19 Server mode: development
+2025-09-24T16:46:20.427Z | responsive-authentication | 16:46:20 (node:315132) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:46:20.427Z | responsive-authentication | 16:46:20 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:46:21.000Z | responsive-authentication | 16:46:21 info: Sep-24-2025 12:46:20: 	Connected to mongodb...
+2025-09-24T16:46:21.368Z | responsive-rapid-quoting | 16:46:21 
+2025-09-24T16:46:21.368Z | responsive-rapid-quoting | 16:46:21 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T16:46:21.368Z | responsive-rapid-quoting | 16:46:21 > nodemon app.js
+2025-09-24T16:46:21.368Z | responsive-rapid-quoting | 16:46:21 
+2025-09-24T16:46:21.520Z | responsive-rapid-quoting | 16:46:21 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:46:21.520Z | responsive-rapid-quoting | 16:46:21 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:46:21.520Z | responsive-rapid-quoting | 16:46:21 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:46:21.520Z | responsive-rapid-quoting | 16:46:21 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:46:21.520Z | responsive-rapid-quoting | 16:46:21 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:46:22.812Z | responsive-rapid-quoting | 16:46:22 info: Sep-24-2025 12:46:22: 	Attempting MSSQL sql server login...
+2025-09-24T16:46:23.265Z | responsive-rapid-quoting | 16:46:23 (node:315186) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T16:46:23.265Z | responsive-rapid-quoting | 16:46:23 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:46:23.369Z | responsive-rapid-quoting | 16:46:23 (node:315186) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:46:24.087Z | responsive-rapid-quoting | 16:46:24 info: Sep-24-2025 12:46:24: 	Connected to mongodb...
+2025-09-24T16:46:24.087Z | responsive-rapid-quoting | 16:46:24 info: Sep-24-2025 12:46:24: 	Server is running on port, 8081
+2025-09-24T16:46:24.260Z | responsive-rapid-rater | 16:46:24 
+2025-09-24T16:46:24.260Z | responsive-rapid-rater | 16:46:24 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T16:46:24.261Z | responsive-rapid-rater | 16:46:24 > nodemon app.js
+2025-09-24T16:46:24.261Z | responsive-rapid-rater | 16:46:24 
+2025-09-24T16:46:24.366Z | responsive-rapid-rater | 16:46:24 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:46:24.383Z | responsive-rapid-rater | 16:46:24 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:46:24.384Z | responsive-rapid-rater | 16:46:24 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:46:24.384Z | responsive-rapid-rater | 16:46:24 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:46:24.384Z | responsive-rapid-rater | 16:46:24 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:46:26.266Z | responsive-rapid-rater | 16:46:26 info: Sep-24-2025 12:46:26: 	Attempting MSSQL sql server login...
+2025-09-24T16:46:26.720Z | responsive-rapid-rater | 16:46:26 (node:315314) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T16:46:26.720Z | responsive-rapid-rater | 16:46:26 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:46:26.758Z | responsive-rapid-rater | 16:46:26 (node:315314) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:46:27.455Z | responsive-rapid-rater | 16:46:27 info: Sep-24-2025 12:46:27: 	Connected to mongodb...
+2025-09-24T16:49:24.592Z | responsive-authentication | 16:49:24 
+2025-09-24T16:49:24.593Z | responsive-authentication | 16:49:24 > responsive-authentication-service@0.1.0 dev
+2025-09-24T16:49:24.593Z | responsive-authentication | 16:49:24 > nodemon app.js
+2025-09-24T16:49:24.593Z | responsive-authentication | 16:49:24 
+2025-09-24T16:49:24.748Z | responsive-authentication | 16:49:24 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:49:24.748Z | responsive-authentication | 16:49:24 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:49:24.748Z | responsive-authentication | 16:49:24 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:49:24.748Z | responsive-authentication | 16:49:24 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:49:24.748Z | responsive-authentication | 16:49:24 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:49:25.497Z | responsive-authentication | 16:49:25 Server mode: development
+2025-09-24T16:49:26.207Z | responsive-authentication | 16:49:26 (node:316871) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:49:26.207Z | responsive-authentication | 16:49:26 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:49:26.769Z | responsive-authentication | 16:49:26 info: Sep-24-2025 12:49:26: 	Connected to mongodb...
+2025-09-24T16:49:27.052Z | responsive-rapid-quoting | 16:49:27 
+2025-09-24T16:49:27.052Z | responsive-rapid-quoting | 16:49:27 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T16:49:27.052Z | responsive-rapid-quoting | 16:49:27 > nodemon app.js
+2025-09-24T16:49:27.052Z | responsive-rapid-quoting | 16:49:27 
+2025-09-24T16:49:27.143Z | responsive-rapid-quoting | 16:49:27 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:49:27.144Z | responsive-rapid-quoting | 16:49:27 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:49:27.149Z | responsive-rapid-quoting | 16:49:27 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:49:27.149Z | responsive-rapid-quoting | 16:49:27 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:49:27.149Z | responsive-rapid-quoting | 16:49:27 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:49:28.281Z | responsive-rapid-quoting | 16:49:28 info: Sep-24-2025 12:49:28: 	Attempting MSSQL sql server login...
+2025-09-24T16:49:28.679Z | responsive-rapid-quoting | 16:49:28 (node:316919) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T16:49:28.680Z | responsive-rapid-quoting | 16:49:28 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:49:28.825Z | responsive-rapid-quoting | 16:49:28 (node:316919) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:49:29.477Z | responsive-rapid-quoting | 16:49:29 info: Sep-24-2025 12:49:29: 	Connected to mongodb...
+2025-09-24T16:49:29.484Z | responsive-rapid-quoting | 16:49:29 info: Sep-24-2025 12:49:29: 	Server is running on port, 8081
+2025-09-24T16:49:29.655Z | responsive-rapid-rater | 16:49:29 
+2025-09-24T16:49:29.655Z | responsive-rapid-rater | 16:49:29 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T16:49:29.655Z | responsive-rapid-rater | 16:49:29 > nodemon app.js
+2025-09-24T16:49:29.655Z | responsive-rapid-rater | 16:49:29 
+2025-09-24T16:49:29.751Z | responsive-rapid-rater | 16:49:29 [33m[nodemon] 2.0.19[39m
+2025-09-24T16:49:29.765Z | responsive-rapid-rater | 16:49:29 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T16:49:29.765Z | responsive-rapid-rater | 16:49:29 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T16:49:29.765Z | responsive-rapid-rater | 16:49:29 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T16:49:29.765Z | responsive-rapid-rater | 16:49:29 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T16:49:30.904Z | responsive-rapid-rater | 16:49:30 info: Sep-24-2025 12:49:30: 	Attempting MSSQL sql server login...
+2025-09-24T16:49:31.242Z | responsive-rapid-rater | 16:49:31 (node:317045) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T16:49:31.242Z | responsive-rapid-rater | 16:49:31 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T16:49:31.325Z | responsive-rapid-rater | 16:49:31 (node:317045) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T16:49:31.953Z | responsive-rapid-rater | 16:49:31 info: Sep-24-2025 12:49:31: 	Connected to mongodb...
+2025-09-24T16:56:26.168Z | responsive-rapid-quoting | 16:56:26 info: Sep-24-2025 12:56:26: 	{"started":"2025-09-24T16:56:16.554Z","parsed":"2025-09-24T16:56:16.583Z","translated":"2025-09-24T16:56:17.337Z","quoteRequest":{"started":"2025-09-24T16:56:17.349Z","savedToLegacy":"2025-09-24T16:56:18.178Z","interfacesCalled":"2025-09-24T16:56:18.514Z","stopsAndDqsRan":"2025-09-24T16:56:21.569Z","rated":"2025-09-24T16:56:26.141Z"},"finished":"2025-09-24T16:56:26.145Z"}
+2025-09-24T19:27:36.160Z | responsive-authentication | 19:27:36 
+2025-09-24T19:27:36.160Z | responsive-authentication | 19:27:36 > responsive-authentication-service@0.1.0 dev
+2025-09-24T19:27:36.160Z | responsive-authentication | 19:27:36 > nodemon app.js
+2025-09-24T19:27:36.160Z | responsive-authentication | 19:27:36 
+2025-09-24T19:27:36.362Z | responsive-authentication | 19:27:36 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:27:36.364Z | responsive-authentication | 19:27:36 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:27:36.364Z | responsive-authentication | 19:27:36 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:27:36.365Z | responsive-authentication | 19:27:36 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:27:36.365Z | responsive-authentication | 19:27:36 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:27:37.932Z | responsive-authentication | 19:27:37 Server mode: development
+2025-09-24T19:27:38.599Z | responsive-authentication | 19:27:38 (node:351150) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:27:38.599Z | responsive-authentication | 19:27:38 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:27:39.225Z | responsive-authentication | 19:27:39 info: Sep-24-2025 15:27:39: 	Connected to mongodb...
+2025-09-24T19:27:39.521Z | responsive-rapid-quoting | 19:27:39 
+2025-09-24T19:27:39.522Z | responsive-rapid-quoting | 19:27:39 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T19:27:39.522Z | responsive-rapid-quoting | 19:27:39 > nodemon app.js
+2025-09-24T19:27:39.522Z | responsive-rapid-quoting | 19:27:39 
+2025-09-24T19:27:39.695Z | responsive-rapid-quoting | 19:27:39 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:27:39.695Z | responsive-rapid-quoting | 19:27:39 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:27:39.702Z | responsive-rapid-quoting | 19:27:39 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:27:39.702Z | responsive-rapid-quoting | 19:27:39 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:27:39.702Z | responsive-rapid-quoting | 19:27:39 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:27:41.369Z | responsive-rapid-quoting | 19:27:41 info: Sep-24-2025 15:27:41: 	Attempting MSSQL sql server login...
+2025-09-24T19:27:42.103Z | responsive-rapid-quoting | 19:27:42 (node:351285) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T19:27:42.103Z | responsive-rapid-quoting | 19:27:42 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:27:42.260Z | responsive-rapid-quoting | 19:27:42 (node:351285) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:27:42.993Z | responsive-rapid-quoting | 19:27:42 info: Sep-24-2025 15:27:42: 	Connected to mongodb...
+2025-09-24T19:27:42.993Z | responsive-rapid-quoting | 19:27:42 info: Sep-24-2025 15:27:42: 	Server is running on port, 8081
+2025-09-24T19:27:43.295Z | responsive-rapid-rater | 19:27:43 
+2025-09-24T19:27:43.295Z | responsive-rapid-rater | 19:27:43 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T19:27:43.295Z | responsive-rapid-rater | 19:27:43 > nodemon app.js
+2025-09-24T19:27:43.295Z | responsive-rapid-rater | 19:27:43 
+2025-09-24T19:27:43.509Z | responsive-rapid-rater | 19:27:43 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:27:43.529Z | responsive-rapid-rater | 19:27:43 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:27:43.529Z | responsive-rapid-rater | 19:27:43 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:27:43.529Z | responsive-rapid-rater | 19:27:43 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:27:43.529Z | responsive-rapid-rater | 19:27:43 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:27:45.304Z | responsive-rapid-rater | 19:27:45 info: Sep-24-2025 15:27:45: 	Attempting MSSQL sql server login...
+2025-09-24T19:27:45.719Z | responsive-rapid-rater | 19:27:45 (node:351487) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T19:27:45.719Z | responsive-rapid-rater | 19:27:45 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:27:45.749Z | responsive-rapid-rater | 19:27:45 (node:351487) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:27:46.312Z | responsive-rapid-rater | 19:27:46 info: Sep-24-2025 15:27:46: 	Connected to mongodb...
+2025-09-24T19:28:28.765Z | responsive-rapid-quoting | 19:28:28 info: Sep-24-2025 15:28:28: 	{"started":"2025-09-24T19:28:21.821Z","parsed":"2025-09-24T19:28:21.831Z","translated":"2025-09-24T19:28:22.474Z","quoteRequest":{"started":"2025-09-24T19:28:22.478Z","savedToLegacy":"2025-09-24T19:28:22.950Z","interfacesCalled":"2025-09-24T19:28:23.249Z","stopsAndDqsRan":"2025-09-24T19:28:26.092Z","rated":"2025-09-24T19:28:28.754Z"},"finished":"2025-09-24T19:28:28.756Z"}
+2025-09-24T19:59:21.194Z | responsive-authentication | 19:59:21 
+2025-09-24T19:59:21.194Z | responsive-authentication | 19:59:21 > responsive-authentication-service@0.1.0 dev
+2025-09-24T19:59:21.194Z | responsive-authentication | 19:59:21 > nodemon app.js
+2025-09-24T19:59:21.194Z | responsive-authentication | 19:59:21 
+2025-09-24T19:59:21.302Z | responsive-authentication | 19:59:21 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:59:21.305Z | responsive-authentication | 19:59:21 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:59:21.305Z | responsive-authentication | 19:59:21 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:59:21.305Z | responsive-authentication | 19:59:21 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:59:21.306Z | responsive-authentication | 19:59:21 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:59:22.440Z | responsive-authentication | 19:59:22 Server mode: development
+2025-09-24T19:59:22.963Z | responsive-authentication | 19:59:22 (node:362728) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:59:22.963Z | responsive-authentication | 19:59:22 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:59:23.533Z | responsive-authentication | 19:59:23 info: Sep-24-2025 15:59:23: 	Connected to mongodb...
+2025-09-24T19:59:23.885Z | responsive-rapid-quoting | 19:59:23 
+2025-09-24T19:59:23.885Z | responsive-rapid-quoting | 19:59:23 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T19:59:23.885Z | responsive-rapid-quoting | 19:59:23 > nodemon app.js
+2025-09-24T19:59:23.885Z | responsive-rapid-quoting | 19:59:23 
+2025-09-24T19:59:24.018Z | responsive-rapid-quoting | 19:59:24 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:59:24.024Z | responsive-rapid-quoting | 19:59:24 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:59:24.025Z | responsive-rapid-quoting | 19:59:24 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:59:24.025Z | responsive-rapid-quoting | 19:59:24 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:59:24.025Z | responsive-rapid-quoting | 19:59:24 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:59:25.577Z | responsive-rapid-quoting | 19:59:25 info: Sep-24-2025 15:59:25: 	Attempting MSSQL sql server login...
+2025-09-24T19:59:26.052Z | responsive-rapid-quoting | 19:59:26 (node:362870) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T19:59:26.053Z | responsive-rapid-quoting | 19:59:26 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:59:26.099Z | responsive-rapid-quoting | 19:59:26 (node:362870) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:59:26.809Z | responsive-rapid-quoting | 19:59:26 info: Sep-24-2025 15:59:26: 	Connected to mongodb...
+2025-09-24T19:59:26.809Z | responsive-rapid-quoting | 19:59:26 info: Sep-24-2025 15:59:26: 	Server is running on port, 8081
+2025-09-24T19:59:26.969Z | responsive-rapid-rater | 19:59:26 
+2025-09-24T19:59:26.969Z | responsive-rapid-rater | 19:59:26 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T19:59:26.969Z | responsive-rapid-rater | 19:59:26 > nodemon app.js
+2025-09-24T19:59:26.969Z | responsive-rapid-rater | 19:59:26 
+2025-09-24T19:59:27.071Z | responsive-rapid-rater | 19:59:27 [33m[nodemon] 2.0.19[39m
+2025-09-24T19:59:27.084Z | responsive-rapid-rater | 19:59:27 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T19:59:27.085Z | responsive-rapid-rater | 19:59:27 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T19:59:27.085Z | responsive-rapid-rater | 19:59:27 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T19:59:27.085Z | responsive-rapid-rater | 19:59:27 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T19:59:28.272Z | responsive-rapid-rater | 19:59:28 info: Sep-24-2025 15:59:28: 	Attempting MSSQL sql server login...
+2025-09-24T19:59:28.489Z | responsive-rapid-rater | 19:59:28 (node:363012) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T19:59:28.489Z | responsive-rapid-rater | 19:59:28 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T19:59:28.569Z | responsive-rapid-rater | 19:59:28 (node:363012) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T19:59:29.127Z | responsive-rapid-rater | 19:59:29 info: Sep-24-2025 15:59:29: 	Connected to mongodb...
+2025-09-24T19:59:39.605Z | responsive-rapid-quoting | 19:59:39 info: Sep-24-2025 15:59:39: 	{"started":"2025-09-24T19:59:33.952Z","parsed":"2025-09-24T19:59:33.962Z","translated":"2025-09-24T19:59:34.593Z","quoteRequest":{"started":"2025-09-24T19:59:34.596Z","savedToLegacy":"2025-09-24T19:59:35.014Z","interfacesCalled":"2025-09-24T19:59:35.304Z","stopsAndDqsRan":"2025-09-24T19:59:37.693Z","rated":"2025-09-24T19:59:39.597Z"},"finished":"2025-09-24T19:59:39.599Z"}
+2025-09-24T20:00:44.331Z | responsive-rapid-quoting | 20:00:44 info: Sep-24-2025 16:00:44: 	{"started":"2025-09-24T20:00:39.736Z","parsed":"2025-09-24T20:00:39.743Z","translated":"2025-09-24T20:00:40.168Z","quoteRequest":{"started":"2025-09-24T20:00:40.169Z","savedToLegacy":"2025-09-24T20:00:40.611Z","interfacesCalled":"2025-09-24T20:00:40.923Z","stopsAndDqsRan":"2025-09-24T20:00:42.902Z","rated":"2025-09-24T20:00:44.322Z"},"finished":"2025-09-24T20:00:44.325Z"}
+2025-09-24T20:01:03.679Z | responsive-rapid-quoting | 20:01:03 info: Sep-24-2025 16:01:03: 	{"started":"2025-09-24T20:00:58.972Z","parsed":"2025-09-24T20:00:58.974Z","translated":"2025-09-24T20:00:59.538Z","quoteRequest":{"started":"2025-09-24T20:00:59.539Z","savedToLegacy":"2025-09-24T20:01:00.027Z","interfacesCalled":"2025-09-24T20:01:00.343Z","stopsAndDqsRan":"2025-09-24T20:01:02.265Z","rated":"2025-09-24T20:01:03.674Z"},"finished":"2025-09-24T20:01:03.675Z"}
+2025-09-24T20:05:25.507Z | responsive-authentication | 20:05:25 
+2025-09-24T20:05:25.508Z | responsive-authentication | 20:05:25 > responsive-authentication-service@0.1.0 dev
+2025-09-24T20:05:25.508Z | responsive-authentication | 20:05:25 > nodemon app.js
+2025-09-24T20:05:25.508Z | responsive-authentication | 20:05:25 
+2025-09-24T20:05:25.565Z | responsive-authentication | 20:05:25 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:05:25.567Z | responsive-authentication | 20:05:25 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:05:25.567Z | responsive-authentication | 20:05:25 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:05:25.567Z | responsive-authentication | 20:05:25 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:05:25.567Z | responsive-authentication | 20:05:25 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:05:25.895Z | responsive-authentication | 20:05:25 Server mode: development
+2025-09-24T20:05:26.378Z | responsive-authentication | 20:05:26 (node:366520) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:05:26.378Z | responsive-authentication | 20:05:26 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:05:27.030Z | responsive-authentication | 20:05:27 info: Sep-24-2025 16:05:27: 	Connected to mongodb...
+2025-09-24T20:05:27.333Z | responsive-rapid-quoting | 20:05:27 
+2025-09-24T20:05:27.333Z | responsive-rapid-quoting | 20:05:27 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T20:05:27.334Z | responsive-rapid-quoting | 20:05:27 > nodemon app.js
+2025-09-24T20:05:27.334Z | responsive-rapid-quoting | 20:05:27 
+2025-09-24T20:05:27.394Z | responsive-rapid-quoting | 20:05:27 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:05:27.399Z | responsive-rapid-quoting | 20:05:27 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:05:27.399Z | responsive-rapid-quoting | 20:05:27 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:05:27.399Z | responsive-rapid-quoting | 20:05:27 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:05:27.399Z | responsive-rapid-quoting | 20:05:27 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:05:27.859Z | responsive-rapid-quoting | 20:05:27 info: Sep-24-2025 16:05:27: 	Attempting MSSQL sql server login...
+2025-09-24T20:05:28.082Z | responsive-rapid-quoting | 20:05:28 (node:366651) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T20:05:28.082Z | responsive-rapid-quoting | 20:05:28 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:05:28.163Z | responsive-rapid-quoting | 20:05:28 (node:366651) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:05:28.855Z | responsive-rapid-quoting | 20:05:28 info: Sep-24-2025 16:05:28: 	Connected to mongodb...
+2025-09-24T20:05:28.863Z | responsive-rapid-quoting | 20:05:28 info: Sep-24-2025 16:05:28: 	Server is running on port, 8081
+2025-09-24T20:05:29.215Z | responsive-rapid-rater | 20:05:29 
+2025-09-24T20:05:29.216Z | responsive-rapid-rater | 20:05:29 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T20:05:29.216Z | responsive-rapid-rater | 20:05:29 > nodemon app.js
+2025-09-24T20:05:29.216Z | responsive-rapid-rater | 20:05:29 
+2025-09-24T20:05:29.280Z | responsive-rapid-rater | 20:05:29 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:05:29.280Z | responsive-rapid-rater | 20:05:29 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:05:29.295Z | responsive-rapid-rater | 20:05:29 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:05:29.295Z | responsive-rapid-rater | 20:05:29 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:05:29.295Z | responsive-rapid-rater | 20:05:29 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:05:29.761Z | responsive-rapid-rater | 20:05:29 info: Sep-24-2025 16:05:29: 	Attempting MSSQL sql server login...
+2025-09-24T20:05:29.924Z | responsive-rapid-rater | 20:05:29 (node:366704) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T20:05:29.924Z | responsive-rapid-rater | 20:05:29 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:05:30.015Z | responsive-rapid-rater | 20:05:30 (node:366704) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:05:30.695Z | responsive-rapid-rater | 20:05:30 info: Sep-24-2025 16:05:30: 	Connected to mongodb...
+2025-09-24T20:07:04.128Z | responsive-rapid-quoting | 20:07:04 info: Sep-24-2025 16:07:04: 	{"started":"2025-09-24T20:06:58.329Z","parsed":"2025-09-24T20:06:58.345Z","translated":"2025-09-24T20:06:59.005Z","quoteRequest":{"started":"2025-09-24T20:06:59.008Z","savedToLegacy":"2025-09-24T20:06:59.466Z","interfacesCalled":"2025-09-24T20:06:59.779Z","stopsAndDqsRan":"2025-09-24T20:07:02.120Z","rated":"2025-09-24T20:07:04.111Z"},"finished":"2025-09-24T20:07:04.117Z"}
+2025-09-24T20:14:43.802Z | responsive-authentication | 20:14:43 
+2025-09-24T20:14:43.802Z | responsive-authentication | 20:14:43 > responsive-authentication-service@0.1.0 dev
+2025-09-24T20:14:43.802Z | responsive-authentication | 20:14:43 > nodemon app.js
+2025-09-24T20:14:43.802Z | responsive-authentication | 20:14:43 
+2025-09-24T20:14:43.912Z | responsive-authentication | 20:14:43 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:14:43.914Z | responsive-authentication | 20:14:43 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:14:43.914Z | responsive-authentication | 20:14:43 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:14:43.914Z | responsive-authentication | 20:14:43 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:14:43.914Z | responsive-authentication | 20:14:43 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:14:45.139Z | responsive-authentication | 20:14:45 Server mode: development
+2025-09-24T20:14:45.876Z | responsive-authentication | 20:14:45 (node:372595) [DEP0170] DeprecationWarning: The URL mongodb://ras_user:ATXlitgvO9sIVaci@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveAuthenticationService?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:14:45.876Z | responsive-authentication | 20:14:45 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:14:46.464Z | responsive-authentication | 20:14:46 info: Sep-24-2025 16:14:46: 	Connected to mongodb...
+2025-09-24T20:14:46.973Z | responsive-rapid-quoting | 20:14:46 
+2025-09-24T20:14:46.973Z | responsive-rapid-quoting | 20:14:46 > responsive-rapid-quoting@1.0.0 dev
+2025-09-24T20:14:46.973Z | responsive-rapid-quoting | 20:14:46 > nodemon app.js
+2025-09-24T20:14:46.973Z | responsive-rapid-quoting | 20:14:46 
+2025-09-24T20:14:47.193Z | responsive-rapid-quoting | 20:14:47 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:14:47.193Z | responsive-rapid-quoting | 20:14:47 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:14:47.193Z | responsive-rapid-quoting | 20:14:47 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:14:47.193Z | responsive-rapid-quoting | 20:14:47 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:14:47.193Z | responsive-rapid-quoting | 20:14:47 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:14:48.544Z | responsive-rapid-quoting | 20:14:48 info: Sep-24-2025 16:14:48: 	Attempting MSSQL sql server login...
+2025-09-24T20:14:49.069Z | responsive-rapid-quoting | 20:14:49 (node:372757) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T20:14:49.069Z | responsive-rapid-quoting | 20:14:49 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:14:49.149Z | responsive-rapid-quoting | 20:14:49 (node:372757) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017,raidev-shard-00-00.fgcsr.mongodb.net:27017/ResponsiveRapidQuoting?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:14:49.856Z | responsive-rapid-quoting | 20:14:49 info: Sep-24-2025 16:14:49: 	Connected to mongodb...
+2025-09-24T20:14:49.864Z | responsive-rapid-quoting | 20:14:49 info: Sep-24-2025 16:14:49: 	Server is running on port, 8081
+2025-09-24T20:14:50.249Z | responsive-rapid-rater | 20:14:50 
+2025-09-24T20:14:50.249Z | responsive-rapid-rater | 20:14:50 > responsive-rapid-rating@1.0.0 dev
+2025-09-24T20:14:50.249Z | responsive-rapid-rater | 20:14:50 > nodemon app.js
+2025-09-24T20:14:50.249Z | responsive-rapid-rater | 20:14:50 
+2025-09-24T20:14:50.361Z | responsive-rapid-rater | 20:14:50 [33m[nodemon] 2.0.19[39m
+2025-09-24T20:14:50.362Z | responsive-rapid-rater | 20:14:50 [33m[nodemon] to restart at any time, enter `rs`[39m
+2025-09-24T20:14:50.383Z | responsive-rapid-rater | 20:14:50 [33m[nodemon] watching path(s): *.*[39m
+2025-09-24T20:14:50.384Z | responsive-rapid-rater | 20:14:50 [33m[nodemon] watching extensions: js,mjs,json[39m
+2025-09-24T20:14:50.384Z | responsive-rapid-rater | 20:14:50 [32m[nodemon] starting `node app.js`[39m
+2025-09-24T20:14:51.634Z | responsive-rapid-rater | 20:14:51 info: Sep-24-2025 16:14:51: 	Attempting MSSQL sql server login...
+2025-09-24T20:14:51.921Z | responsive-rapid-rater | 20:14:51 (node:372913) [MONGOOSE] DeprecationWarning: Mongoose: the `strictQuery` option will be switched back to `false` by default in Mongoose 7. Use `mongoose.set('strictQuery', false);` if you want to prepare for this change. Or use `mongoose.set('strictQuery', true);` to suppress this warning.
+2025-09-24T20:14:51.921Z | responsive-rapid-rater | 20:14:51 (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-09-24T20:14:52.030Z | responsive-rapid-rater | 20:14:52 (node:372913) [DEP0170] DeprecationWarning: The URL mongodb://christopher_bohorquez:pRB1nf1k6HPzruq3@raidev-shard-00-00.fgcsr.mongodb.net:27017,raidev-shard-00-01.fgcsr.mongodb.net:27017,raidev-shard-00-02.fgcsr.mongodb.net:27017/ResponsiveRapidRating?authSource=admin&replicaSet=atlas-oi2goi-shard-0&ssl=true is invalid. Future versions of Node.js will throw an error.
+2025-09-24T20:14:52.616Z | responsive-rapid-rater | 20:14:52 info: Sep-24-2025 16:14:52: 	Connected to mongodb...

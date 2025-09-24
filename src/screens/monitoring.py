@@ -23,16 +23,7 @@ class MonitoringScreen(Screen):
         ("r", "restart", "Restart"),
         ("shift+r", "restart_all", "Restart All"),
         ("s", "stop_all", "Stop All"),
-        ("tab", "next_tab", "Switch Logs"),
-        ("1", "tab_1", "All Logs"),
-        ("2", "tab_2", "Tab 2"),
-        ("3", "tab_3", "Tab 3"),
-        ("4", "tab_4", "Tab 4"),
-        ("5", "tab_5", "Tab 5"),
-        ("6", "tab_6", "Tab 6"),
-        ("7", "tab_7", "Tab 7"),
-        ("8", "tab_8", "Tab 8"),
-        ("9", "tab_9", "Tab 9"),
+        ("a", "show_all_logs", "All Logs"),
     ]
 
     DEFAULT_CSS = """
@@ -131,14 +122,14 @@ class MonitoringScreen(Screen):
                 if name not in self._project_colors:
                     self._project_colors[name] = self._color_palette[idx % len(self._color_palette)]
             self._panel.set_project(name, ProjectStatus.RUNNING, port, branch)
-        # Initialize log viewer tabs
+        # Initialize log viewer project registry (for completeness)
         if self._logs:
             self._logs.set_projects(list(self._name_to_short.keys()))
         # Register callback
         self._log_collector.register_callback(self._on_log_line)
         # DEBUG: emit a test line to verify viewer path
-        if self._logs:
-            self._logs.add_log("system", Text("(debug) Monitoring screen mounted", style="italic dim"))
+        # if self._logs:
+        #     self._logs.add_log("system", Text("(debug) Monitoring screen mounted", style="italic dim"))
         self._panel.refresh(recompose=True)
 
     def _on_log_line(self, project: str, line: str) -> None:
@@ -190,43 +181,18 @@ class MonitoringScreen(Screen):
             await self._manager.stop_project(name)
             self._panel.update_status(name, ProjectStatus.STOPPED)
 
-    def action_next_tab(self) -> None:
-        """Switch to next log tab."""
+    # New actions -----------------------------------------------------------
+    def action_show_all_logs(self) -> None:
+        # Clear selection in both panel and log viewer so UI stays consistent
+        if self._panel:
+            self._panel.set_selected(None)
         if self._logs:
-            self._logs.next_tab()
+            # Direct call ensures refresh even if selection was already None
+            self._logs.set_active_project(None)
 
-    def _switch_to_tab(self, idx: int) -> None:
-        """Switch to tab by number key (1=All Logs, 2+=projects)."""
-        if not self._logs:
-            return
-        # SimpleLogViewer expects zero-based (0 = All Logs)
-        self._logs.select_tab_index(idx - 1)
-
-    def action_tab_1(self) -> None:
-        self._switch_to_tab(1)
-
-    def action_tab_2(self) -> None:
-        self._switch_to_tab(2)
-
-    def action_tab_3(self) -> None:
-        self._switch_to_tab(3)
-
-    def action_tab_4(self) -> None:
-        self._switch_to_tab(4)
-
-    def action_tab_5(self) -> None:
-        self._switch_to_tab(5)
-
-    def action_tab_6(self) -> None:
-        self._switch_to_tab(6)
-
-    def action_tab_7(self) -> None:
-        self._switch_to_tab(7)
-
-    def action_tab_8(self) -> None:
-        self._switch_to_tab(8)
-
-    def action_tab_9(self) -> None:
-        self._switch_to_tab(9)
+    # Message handlers ------------------------------------------------------
+    def on_running_panel_project_selected(self, message: RunningPanel.ProjectSelected) -> None:  # type: ignore[override]
+        if self._logs:
+            self._logs.set_active_project(message.project)
 
 __all__ = ["MonitoringScreen"]
