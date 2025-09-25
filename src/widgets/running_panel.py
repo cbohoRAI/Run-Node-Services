@@ -102,6 +102,10 @@ class RunningPanel(Widget):
             self._statuses[name] = status
             self.refresh(recompose=True)  # Force recompose to update display
 
+    def on_resize(self, event: events.Resize) -> None:  # type: ignore[override]
+        """Handle terminal resize events by refreshing the display."""
+        self.refresh(recompose=True)
+
     def watch_selected(self, old: Optional[str], new: Optional[str]) -> None:  # type: ignore[override]
         # When selection changes, update button highlighting without full recompose
         for btn in self.query(Button).results(Button):
@@ -137,14 +141,25 @@ class RunningPanel(Widget):
         port = self._ports.get(name)
         branch = self._branches.get(name)
         icon = self._get_status_icon(status)
-        port_text = f":{port}" if port else ":−"
-        branch_text = branch or "−"
-        if len(branch_text) > 20:
-            branch_text = branch_text[:17] + "..."
+        port_text = f":{port}" if port else ":-"
+        branch_text = branch or "-"
         color = STATUS_COLOR.get(status, "white")
         status_formatted = f"[{color}]{icon} {status.value.capitalize()}[/{color}]"
         prefix = "▶" if name == self.selected else " "
-        return f"{prefix} {name:<34} {status_formatted:<20} {port_text:<8} {branch_text}"
+        
+        # Calculate available space for branch text
+        # Account for: prefix(1) + space(1) + name(26) + space(1) + status(24) + space(1) + port(8) + space(1) = 63
+        terminal_width = self.app.size.width if hasattr(self, 'app') and self.app.size else 80
+        available_branch_width = max(1, terminal_width - 63)  # Minimum 1 char for branch
+        
+        # Truncate branch text if needed
+        if len(branch_text) > available_branch_width:
+            if available_branch_width > 1:
+                branch_text = branch_text[:available_branch_width-1] + "…"
+            else:
+                branch_text = "…"
+        
+        return f"{prefix} {name:<26} {status_formatted:<24} {port_text:<8} {branch_text}"
 
     def _get_status_icon(self, status: ProjectStatus) -> str:
         icons = {

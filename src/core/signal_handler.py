@@ -44,7 +44,7 @@ class SignalHandler:
             logger.debug("Shutdown already in progress (signal %s)", signum)
             return
         self._shutdown_started = True
-        logger.info("Received signal %s – initiating graceful shutdown", signum)
+        logger.info("Received signal %s - initiating graceful shutdown", signum)
         try:
             asyncio.get_running_loop().create_task(self._graceful())
         except RuntimeError:

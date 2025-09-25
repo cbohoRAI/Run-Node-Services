@@ -25,6 +25,25 @@ class ProjectSelectionScreen(Screen):
         ("r", "refresh", "Refresh"),
     ]
 
+    DEFAULT_CSS = """
+    ProjectSelectionScreen {
+        layout: vertical;
+    }
+    ProjectSelectionScreen DataTable {
+        height: 1fr;
+    }
+    ProjectSelectionScreen Footer {
+        dock: bottom;
+    }
+    #projects-table {
+        height: 1fr;
+    }
+    #projects-table .datatable--cursor {
+        background: $accent;
+        color: $text;
+    }
+    """
+
     # Symbols defined at class-level
     CHECKED_MARK = "[X]"
     UNCHECKED_MARK = "[ ]"
@@ -40,7 +59,7 @@ class ProjectSelectionScreen(Screen):
         self._row_keys = {}
 
     def compose(self) -> ComposeResult:
-        self._table = DataTable(zebra_stripes=True)
+        self._table = DataTable(zebra_stripes=True, id="project-table")
         self._table.cursor_type = "row"
         yield self._table
         self._log_widget = Static("", id="log")
@@ -51,10 +70,10 @@ class ProjectSelectionScreen(Screen):
     def on_mount(self) -> None:
         self._logs_active = False
         # DIAGNOSTIC: attach file sink once (idempotent assumption: single on_mount)
-        try:
-            attach_file_sink(self._log_collector, "logs/stream_capture.log")  # CHANGE: adds file logging
-        except Exception:
-            pass
+        # try:
+        #     attach_file_sink(self._log_collector, "logs/stream_capture.log")  # CHANGE: adds file logging
+        # except Exception:
+        #     pass
         self._table.add_columns("Select", "Short", "Name", "Port", "Branch")
         self.refresh_projects()
         self.set_focus(self._table)
@@ -66,9 +85,9 @@ class ProjectSelectionScreen(Screen):
         self._table.clear()
         
         for idx, p in enumerate(self._projects):
-            nickname = getattr(p, "short_name", None) or "−"
-            port_display = str(p.port) if p.port else "−"
-            branch_display = p.git_branch if p.git_branch else "−"
+            nickname = getattr(p, "short_name", None) or "-"
+            port_display = str(p.port) if p.port else "-"
+            branch_display = p.git_branch if p.git_branch else "-"
             
             row_key = self._table.add_row(
                 self.UNCHECKED_MARK, 
@@ -130,10 +149,10 @@ class ProjectSelectionScreen(Screen):
         
         for idx, p in enumerate(self._projects):
             sel_mark = self.CHECKED_MARK if self._selected.get(idx, False) else self.UNCHECKED_MARK
-            nickname = getattr(p, "short_name", None) or "−"
-            port_display = str(p.port) if p.port else "−"
-            branch_display = p.git_branch if p.git_branch else "−"
-            
+            nickname = getattr(p, "short_name", None) or "-"
+            port_display = str(p.port) if p.port else "-"
+            branch_display = p.git_branch if p.git_branch else "-"
+
             row_key_new = self._table.add_row(
                 sel_mark, 
                 nickname, 
