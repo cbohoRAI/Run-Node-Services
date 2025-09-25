@@ -13,6 +13,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 from src.models.status import ProjectStatus, STATUS_COLOR
+from src.core.port_scanner import find_process_by_port, kill_process_tree
 
 class RunningPanel(Widget):
     collapsed = reactive(False)
@@ -90,16 +91,40 @@ class RunningPanel(Widget):
         self._statuses: Dict[str, ProjectStatus] = {}
         self._ports: Dict[str, Optional[int]] = {}
         self._branches: Dict[str, Optional[str]] = {}
+        self._pids: Dict[str, Optional[int]] = {}
 
     def set_project(self, name: str, status: ProjectStatus, port: Optional[int], branch: Optional[str]) -> None:
         self._statuses[name] = status
         self._ports[name] = port
         self._branches[name] = branch
+        
+        # Find PID if we have a port and the project is running
+        if port and status == ProjectStatus.RUNNING:
+            try:
+                pids = find_process_by_port(port)
+                self._pids[name] = pids[0] if pids else None
+            except Exception:
+                self._pids[name] = None
+        else:
+            self._pids[name] = None
+        
         self.refresh(recompose=True)  # Force recompose to update display
 
     def update_status(self, name: str, status: ProjectStatus) -> None:
         if name in self._statuses:
             self._statuses[name] = status
+            
+            # Update PID if we have port info and project is running
+            port = self._ports.get(name)
+            if port and status == ProjectStatus.RUNNING:
+                try:
+                    pids = find_process_by_port(port)
+                    self._pids[name] = pids[0] if pids else None
+                except Exception:
+                    self._pids[name] = None
+            else:
+                self._pids[name] = None
+                
             self.refresh(recompose=True)  # Force recompose to update display
 
     def on_resize(self, event: events.Resize) -> None:  # type: ignore[override]
@@ -140,17 +165,19 @@ class RunningPanel(Widget):
         status = self._statuses[name]
         port = self._ports.get(name)
         branch = self._branches.get(name)
+        pid = self._pids.get(name)
         icon = self._get_status_icon(status)
         port_text = f":{port}" if port else ":-"
+        pid_text = str(pid) if pid else "-"
         branch_text = branch or "-"
         color = STATUS_COLOR.get(status, "white")
         status_formatted = f"[{color}]{icon} {status.value.capitalize()}[/{color}]"
         prefix = "▶" if name == self.selected else " "
         
         # Calculate available space for branch text
-        # Account for: prefix(1) + space(1) + name(26) + space(1) + status(24) + space(1) + port(8) + space(1) = 63
+        # Account for: prefix(1) + space(1) + name(26) + space(1) + status(24) + space(1) + port(8) + space(1) + pid(8) + space(1) = 72
         terminal_width = self.app.size.width if hasattr(self, 'app') and self.app.size else 80
-        available_branch_width = max(1, terminal_width - 63)  # Minimum 1 char for branch
+        available_branch_width = max(1, terminal_width - 72)  # Minimum 1 char for branch
         
         # Truncate branch text if needed
         if len(branch_text) > available_branch_width:
@@ -159,7 +186,7 @@ class RunningPanel(Widget):
             else:
                 branch_text = "…"
         
-        return f"{prefix} {name:<26} {status_formatted:<24} {port_text:<8} {branch_text}"
+        return f"{prefix} {name:<26} {status_formatted:<24} {port_text:<8} {pid_text:<8} {branch_text}"
 
     def _get_status_icon(self, status: ProjectStatus) -> str:
         icons = {

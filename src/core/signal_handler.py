@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class SupportsStopAll(Protocol):  # pragma: no cover - structural
     async def stop_all(self) -> None: ...  # noqa: D401,E701
+    async def cleanup_resources(self) -> None: ...  # noqa: D401,E701
 
 
 class SignalHandler:
@@ -51,13 +52,21 @@ class SignalHandler:
             # No running loop – fallback to synchronous stop
             logger.warning("No running event loop; performing synchronous stop")
             try:
-                asyncio.run(self._manager.stop_all())
+                # Try to run both stop_all and cleanup
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(self._manager.stop_all())
+                    loop.run_until_complete(self._manager.cleanup_resources())
+                finally:
+                    loop.close()
             except Exception:  # noqa: BLE001
-                logger.exception("Synchronous stop_all failed after signal")
+                logger.exception("Synchronous stop_all/cleanup failed after signal")
 
     async def _graceful(self) -> None:
         try:
             await self._manager.stop_all()
+            await self._manager.cleanup_resources()
         except Exception:  # noqa: BLE001
             logger.exception("Error during graceful shutdown")
 

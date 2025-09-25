@@ -149,8 +149,22 @@ class MonitoringScreen(Screen):
                 print(f"[DEBUG monitor cb ERROR] {e}")
 
     # Actions ---------------------------------------------------------------
-    def action_quit(self) -> None:
-        """Quit the application."""
+    async def action_quit(self) -> None:
+        """Quit the application after stopping all projects."""
+        # Stop all running projects first
+        try:
+            await self._manager.stop_all()
+            # Clean up subprocess resources to prevent asyncio errors
+            await self._manager.cleanup_resources()
+            # Update UI to show projects are stopped
+            for proj_info in self._projects:
+                name = proj_info.get('name') if isinstance(proj_info, dict) else proj_info
+                self._panel.update_status(name, ProjectStatus.STOPPED)
+        except Exception as e:
+            # Log error but still exit
+            print(f"Error stopping projects during quit: {e}")
+        
+        # Now exit the application
         self.app.exit()
 
     def action_toggle_panel(self) -> None:
