@@ -1,0 +1,139 @@
+2025-10-01 15:19:29.241 | INFO     | ================================================================================
+2025-10-01 15:19:29.241 | INFO     | SHUTDOWN LOG - Started at 2025-10-01T15:19:29.241929
+2025-10-01 15:19:29.241 | INFO     | ================================================================================
+2025-10-01 15:19:29.241 | INFO     | ShutdownManager initialized
+2025-10-01 15:19:29.241 | DEBUG    | Graceful timeout: 10.0s, Emergency timeout: 15.0s
+2025-10-01 15:19:35.043 | INFO     | Started project responsive-authentication (wrapper pid=314185, port=8084)
+2025-10-01 15:19:35.043 | DEBUG    | Registered process responsive-authentication (wrapper_pid=314185, port=8084)
+2025-10-01 15:19:35.043 | DEBUG    | Registered task for responsive-authentication: <Task pending name='Task-48' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:35.043 | DEBUG    | Registered task for responsive-authentication: <Task pending name='Task-49' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:36.904 | DEBUG    | Registered Node.js PIDs for responsive-authentication: {314212}
+2025-10-01 15:19:36.904 | DEBUG    | Registered Node.js PIDs for responsive-authentication: {314212}
+2025-10-01 15:19:36.905 | INFO     | Started project responsive-rapid-quoting (wrapper pid=314231, port=8081)
+2025-10-01 15:19:36.905 | DEBUG    | Registered process responsive-rapid-quoting (wrapper_pid=314231, port=8081)
+2025-10-01 15:19:36.905 | DEBUG    | Registered task for responsive-rapid-quoting: <Task pending name='Task-64' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:36.905 | DEBUG    | Registered task for responsive-rapid-quoting: <Task pending name='Task-65' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:38.745 | DEBUG    | Registered Node.js PIDs for responsive-rapid-quoting: {314264}
+2025-10-01 15:19:38.745 | DEBUG    | Registered Node.js PIDs for responsive-rapid-quoting: {314264}
+2025-10-01 15:19:38.748 | INFO     | Started project responsive-rapid-rater (wrapper pid=314283, port=8082)
+2025-10-01 15:19:38.748 | DEBUG    | Registered process responsive-rapid-rater (wrapper_pid=314283, port=8082)
+2025-10-01 15:19:38.748 | DEBUG    | Registered task for responsive-rapid-rater: <Task pending name='Task-83' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:38.748 | DEBUG    | Registered task for responsive-rapid-rater: <Task pending name='Task-84' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:40.616 | DEBUG    | Registered Node.js PIDs for responsive-rapid-rater: {314332}
+2025-10-01 15:19:40.616 | DEBUG    | Registered Node.js PIDs for responsive-rapid-rater: {314332}
+2025-10-01 15:19:40.617 | INFO     | Started project responsive-task-automator (wrapper pid=314411, port=8083)
+2025-10-01 15:19:40.617 | DEBUG    | Registered process responsive-task-automator (wrapper_pid=314411, port=8083)
+2025-10-01 15:19:40.617 | DEBUG    | Registered task for responsive-task-automator: <Task pending name='Task-101' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:40.617 | DEBUG    | Registered task for responsive-task-automator: <Task pending name='Task-102' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:46.512 | DEBUG    | Registered Node.js PIDs for responsive-task-automator: {314438}
+2025-10-01 15:19:46.512 | DEBUG    | Registered Node.js PIDs for responsive-task-automator: {314438}
+2025-10-01 15:19:46.513 | INFO     | Started project stingray-service (wrapper pid=314573, port=8093)
+2025-10-01 15:19:46.513 | DEBUG    | Registered process stingray-service (wrapper_pid=314573, port=8093)
+2025-10-01 15:19:46.513 | DEBUG    | Registered task for stingray-service: <Task pending name='Task-121' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:46.513 | DEBUG    | Registered task for stingray-service: <Task pending name='Task-122' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:49.916 | DEBUG    | Registered Node.js PIDs for stingray-service: {314600}
+2025-10-01 15:19:49.917 | DEBUG    | Registered Node.js PIDs for stingray-service: {314600}
+2025-10-01 15:19:49.917 | INFO     | Started project tprater (wrapper pid=314715, port=8092)
+2025-10-01 15:19:49.917 | DEBUG    | Registered process tprater (wrapper_pid=314715, port=8092)
+2025-10-01 15:19:49.917 | DEBUG    | Registered task for tprater: <Task pending name='Task-143' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:49.917 | DEBUG    | Registered task for tprater: <Task pending name='Task-144' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:52.273 | DEBUG    | Registered Node.js PIDs for tprater: {314742}
+2025-10-01 15:19:52.273 | DEBUG    | Registered Node.js PIDs for tprater: {314742}
+2025-10-01 15:19:52.276 | INFO     | Started project verisk-service (wrapper pid=314771, port=8091)
+2025-10-01 15:19:52.276 | DEBUG    | Registered process verisk-service (wrapper_pid=314771, port=8091)
+2025-10-01 15:19:52.276 | DEBUG    | Registered task for verisk-service: <Task pending name='Task-160' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:52.276 | DEBUG    | Registered task for verisk-service: <Task pending name='Task-161' coro=<ProcessManager._read_stream() running at /home/cboho/Scripts/service_script/src/core/process_manager.py:371>>
+2025-10-01 15:19:53.938 | DEBUG    | Registered Node.js PIDs for verisk-service: {314798}
+2025-10-01 15:19:53.938 | DEBUG    | Registered Node.js PIDs for verisk-service: {314798}
+2025-10-01 15:20:35.544 | INFO     | ShutdownManager initialized
+2025-10-01 15:20:35.544 | DEBUG    | Graceful timeout: 10.0s, Emergency timeout: 15.0s
+2025-10-01 15:20:35.544 | INFO     | ============================================================
+2025-10-01 15:20:35.544 | INFO     | SHUTDOWN INITIATED: user_quit
+2025-10-01 15:20:35.544 | INFO     | ============================================================
+2025-10-01 15:20:35.544 | INFO     | Phase 1: Stopped accepting new operations
+2025-10-01 15:20:35.545 | INFO     | Phase 2: Cancelling 14 tasks
+2025-10-01 15:20:35.549 | INFO     | Phase 2: Task cancellation complete
+2025-10-01 15:20:35.549 | INFO     | Phase 3: Terminating Node processes - responsive-task-automator
+2025-10-01 15:20:35.549 | INFO     | Killing Node.js project responsive-task-automator (port=8083, wrapper_pid=None)
+2025-10-01 15:20:35.554 | DEBUG    | Found 1 processes on port 8083: [314438]
+2025-10-01 15:20:35.554 | DEBUG    | Sending SIGTERM to Node.js processes: {314438}
+2025-10-01 15:20:36.643 | DEBUG    | Port 8083 successfully released
+2025-10-01 15:20:36.643 | INFO     | Successfully killed Node.js project responsive-task-automator
+2025-10-01 15:20:36.644 | INFO     | Phase 3: Terminating Node processes - stingray-service
+2025-10-01 15:20:36.644 | INFO     | Killing Node.js project stingray-service (port=8093, wrapper_pid=None)
+2025-10-01 15:20:36.647 | DEBUG    | Found 1 processes on port 8093: [314600]
+2025-10-01 15:20:36.647 | DEBUG    | Sending SIGTERM to Node.js processes: {314600}
+2025-10-01 15:20:37.759 | DEBUG    | Port 8093 successfully released
+2025-10-01 15:20:37.759 | INFO     | Successfully killed Node.js project stingray-service
+2025-10-01 15:20:37.759 | INFO     | Phase 3: Terminating Node processes - responsive-authentication
+2025-10-01 15:20:37.759 | INFO     | Killing Node.js project responsive-authentication (port=8084, wrapper_pid=None)
+2025-10-01 15:20:37.763 | DEBUG    | Found 1 processes on port 8084: [314212]
+2025-10-01 15:20:37.763 | DEBUG    | Sending SIGTERM to Node.js processes: {314212}
+2025-10-01 15:20:38.856 | DEBUG    | Port 8084 successfully released
+2025-10-01 15:20:38.856 | INFO     | Successfully killed Node.js project responsive-authentication
+2025-10-01 15:20:38.857 | INFO     | Phase 3: Terminating Node processes - tprater
+2025-10-01 15:20:38.857 | INFO     | Killing Node.js project tprater (port=8092, wrapper_pid=None)
+2025-10-01 15:20:38.860 | DEBUG    | Found 1 processes on port 8092: [314742]
+2025-10-01 15:20:38.860 | DEBUG    | Sending SIGTERM to Node.js processes: {314742}
+2025-10-01 15:20:39.938 | DEBUG    | Port 8092 successfully released
+2025-10-01 15:20:39.938 | INFO     | Successfully killed Node.js project tprater
+2025-10-01 15:20:39.938 | INFO     | Phase 3: Terminating Node processes - responsive-rapid-quoting
+2025-10-01 15:20:39.938 | INFO     | Killing Node.js project responsive-rapid-quoting (port=8081, wrapper_pid=None)
+2025-10-01 15:20:39.941 | DEBUG    | Found 1 processes on port 8081: [314264]
+2025-10-01 15:20:39.942 | DEBUG    | Sending SIGTERM to Node.js processes: {314264}
+2025-10-01 15:20:41.002 | DEBUG    | Port 8081 successfully released
+2025-10-01 15:20:41.002 | INFO     | Successfully killed Node.js project responsive-rapid-quoting
+2025-10-01 15:20:41.003 | INFO     | Phase 3: Terminating Node processes - responsive-rapid-rater
+2025-10-01 15:20:41.003 | INFO     | Killing Node.js project responsive-rapid-rater (port=8082, wrapper_pid=None)
+2025-10-01 15:20:41.011 | DEBUG    | Found 1 processes on port 8082: [314332]
+2025-10-01 15:20:41.011 | DEBUG    | Sending SIGTERM to Node.js processes: {314332}
+2025-10-01 15:20:42.095 | DEBUG    | Port 8082 successfully released
+2025-10-01 15:20:42.095 | INFO     | Successfully killed Node.js project responsive-rapid-rater
+2025-10-01 15:20:42.095 | INFO     | Phase 3: Terminating Node processes - verisk-service
+2025-10-01 15:20:42.095 | INFO     | Killing Node.js project verisk-service (port=8091, wrapper_pid=None)
+2025-10-01 15:20:42.098 | DEBUG    | Found 1 processes on port 8091: [314798]
+2025-10-01 15:20:42.098 | DEBUG    | Sending SIGTERM to Node.js processes: {314798}
+2025-10-01 15:20:43.157 | DEBUG    | Port 8091 successfully released
+2025-10-01 15:20:43.157 | INFO     | Successfully killed Node.js project verisk-service
+2025-10-01 15:20:43.157 | INFO     | Phase 3: Node.js process termination complete
+2025-10-01 15:20:43.158 | INFO     | Phase 4: Killing wrapper processes for 7 projects
+2025-10-01 15:20:43.158 | INFO     | Attempting to kill wrapper process for responsive-task-automator (pid=314411)
+2025-10-01 15:20:43.158 | DEBUG    | Process responsive-task-automator (pid=314411) is still running, terminating
+2025-10-01 15:20:44.163 | WARNING  | Wrapper process responsive-task-automator (pid=314411) did not terminate, force killing
+2025-10-01 15:20:44.165 | INFO     | Wrapper process responsive-task-automator (pid=314411) force killed
+2025-10-01 15:20:44.165 | INFO     | Attempting to kill wrapper process for stingray-service (pid=314573)
+2025-10-01 15:20:44.166 | DEBUG    | Process stingray-service (pid=314573) is still running, terminating
+2025-10-01 15:20:45.200 | WARNING  | Wrapper process stingray-service (pid=314573) did not terminate, force killing
+2025-10-01 15:20:45.203 | INFO     | Wrapper process stingray-service (pid=314573) force killed
+2025-10-01 15:20:45.203 | INFO     | Attempting to kill wrapper process for responsive-authentication (pid=314185)
+2025-10-01 15:20:45.203 | DEBUG    | Process responsive-authentication (pid=314185) is still running, terminating
+2025-10-01 15:20:46.203 | WARNING  | Wrapper process responsive-authentication (pid=314185) did not terminate, force killing
+2025-10-01 15:20:46.206 | INFO     | Wrapper process responsive-authentication (pid=314185) force killed
+2025-10-01 15:20:46.206 | INFO     | Attempting to kill wrapper process for tprater (pid=314715)
+2025-10-01 15:20:46.206 | DEBUG    | Process tprater (pid=314715) is still running, terminating
+2025-10-01 15:20:47.240 | WARNING  | Wrapper process tprater (pid=314715) did not terminate, force killing
+2025-10-01 15:20:47.242 | INFO     | Wrapper process tprater (pid=314715) force killed
+2025-10-01 15:20:47.242 | INFO     | Attempting to kill wrapper process for responsive-rapid-quoting (pid=314231)
+2025-10-01 15:20:47.242 | DEBUG    | Process responsive-rapid-quoting (pid=314231) is still running, terminating
+2025-10-01 15:20:48.276 | WARNING  | Wrapper process responsive-rapid-quoting (pid=314231) did not terminate, force killing
+2025-10-01 15:20:48.279 | INFO     | Wrapper process responsive-rapid-quoting (pid=314231) force killed
+2025-10-01 15:20:48.279 | INFO     | Attempting to kill wrapper process for responsive-rapid-rater (pid=314283)
+2025-10-01 15:20:48.279 | DEBUG    | Process responsive-rapid-rater (pid=314283) is still running, terminating
+2025-10-01 15:20:49.305 | WARNING  | Wrapper process responsive-rapid-rater (pid=314283) did not terminate, force killing
+2025-10-01 15:20:49.311 | INFO     | Wrapper process responsive-rapid-rater (pid=314283) force killed
+2025-10-01 15:20:49.311 | INFO     | Attempting to kill wrapper process for verisk-service (pid=314771)
+2025-10-01 15:20:49.311 | DEBUG    | Process verisk-service (pid=314771) is still running, terminating
+2025-10-01 15:20:50.337 | WARNING  | Wrapper process verisk-service (pid=314771) did not terminate, force killing
+2025-10-01 15:20:50.340 | INFO     | Wrapper process verisk-service (pid=314771) force killed
+2025-10-01 15:20:50.345 | ERROR    | Phase 4: Timeout killing wrapper processes
+2025-10-01 15:20:50.346 | INFO     | Phase 4: Wrapper process termination complete
+2025-10-01 15:20:50.447 | INFO     | Phase 5: Closed 0 transports
+2025-10-01 15:20:50.447 | INFO     | Phase 6: Cancelling 42 remaining tasks
+2025-10-01 15:20:50.448 | DEBUG    | Emergency timeout cancelled - normal shutdown completed
+2025-10-01 15:20:50.448 | INFO     | Phase 6: Event loop cleanup complete
+2025-10-01 15:20:50.448 | INFO     | ============================================================
+2025-10-01 15:20:50.448 | INFO     | SHUTDOWN COMPLETED SUCCESSFULLY in 14.90 seconds
+2025-10-01 15:20:50.448 | INFO     | ============================================================
+2025-10-01 15:20:50.450 | INFO     | ================================================================================
+2025-10-01 15:20:50.450 | INFO     | SHUTDOWN COMPLETED - Ended at 2025-10-01T15:20:50.450706
+2025-10-01 15:20:50.450 | INFO     | ================================================================================

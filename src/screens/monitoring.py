@@ -1,4 +1,4 @@
-"""Monitoring screen (Phase 3) - Enhanced version."""
+"""Monitoring screen (Phase 3) - Enhanced version with new shutdown system."""
 from __future__ import annotations
 
 from textual.screen import Screen
@@ -8,6 +8,8 @@ from textual import events
 from textual.containers import Vertical, Container
 from typing import Dict, List, Optional
 from rich.text import Text
+import asyncio
+import os
 
 from src.widgets.running_panel import RunningPanel
 from src.widgets.simple_log_viewer import SimpleLogViewer   # CHANGE: debug viewer
@@ -15,6 +17,8 @@ from src.models.status import ProjectStatus
 from src.core.process_manager import ProcessManager
 from src.core.log_collector import LogCollector
 from src.core.project_discovery import NodeProject
+from src.core.shutdown_manager import ShutdownManager, ShutdownPhase
+from src.core.resource_registry import ResourceRegistry
 
 class MonitoringScreen(Screen):
     BINDINGS = [
@@ -73,6 +77,11 @@ class MonitoringScreen(Screen):
         self._projects = projects
         self._panel: Optional[RunningPanel] = None
         self._logs: Optional[SimpleLogViewer] = None
+        
+        # Ensure manager has a resource registry
+        if not hasattr(manager, 'registry') or manager.registry is None:
+            manager.registry = ResourceRegistry()
+        
         # Map project name -> short nickname (or fallback to name) for log prefixes
         self._name_to_short: Dict[str, str] = {}
         # Map project name -> color style name
@@ -150,22 +159,66 @@ class MonitoringScreen(Screen):
 
     # Actions ---------------------------------------------------------------
     async def action_quit(self) -> None:
-        """Quit the application after stopping all projects."""
-        # Stop all running projects first
+        """Quit the application using enhanced shutdown system."""
         try:
-            await self._manager.stop_all()
-            # Clean up subprocess resources to prevent asyncio errors
-            await self._manager.cleanup_resources()
+            # Create shutdown manager
+            shutdown_manager = ShutdownManager(
+                self._manager.registry,
+                self._manager,
+                graceful_timeout=10.0,
+                emergency_timeout=15.0
+            )
+            
+            # Set up progress callbacks
+            shutdown_manager.on_phase_change = self._on_shutdown_phase_change
+            shutdown_manager.on_progress_update = self._on_shutdown_progress
+            
+            # Show shutdown notification
+            if self._logs:
+                self._logs.add_log("SYSTEM", "[bold yellow]Initiating graceful shutdown...[/bold yellow]")
+            
+            # Execute shutdown
+            await shutdown_manager.initiate_shutdown("user_quit")
+            
             # Update UI to show projects are stopped
             for proj_info in self._projects:
                 name = proj_info.get('name') if isinstance(proj_info, dict) else proj_info
-                self._panel.update_status(name, ProjectStatus.STOPPED)
+                if self._panel:
+                    self._panel.update_status(name, ProjectStatus.STOPPED)
+                    
         except Exception as e:
-            # Log error but still exit
-            print(f"Error stopping projects during quit: {e}")
+            # Emergency exit on failure
+            if self._logs:
+                self._logs.add_log("SYSTEM", f"[bold red]Shutdown failed: {e}[/bold red]")
+                self._logs.add_log("SYSTEM", "[bold red]Performing emergency exit...[/bold red]")
+            await asyncio.sleep(1)
+            os._exit(1)
         
         # Now exit the application
         self.app.exit()
+    
+    def _on_shutdown_phase_change(self, phase: ShutdownPhase, message: str) -> None:
+        """Handle shutdown phase changes for UI feedback."""
+        if self._logs:
+            phase_colors = {
+                ShutdownPhase.STOPPING_OPERATIONS: "blue",
+                ShutdownPhase.CANCELLING_TASKS: "cyan", 
+                ShutdownPhase.TERMINATING_NODE: "yellow",
+                ShutdownPhase.KILLING_WRAPPERS: "magenta",
+                ShutdownPhase.CLOSING_TRANSPORTS: "green",
+                ShutdownPhase.CLEANING_LOOP: "white",
+                ShutdownPhase.COMPLETE: "bright_green",
+                ShutdownPhase.EMERGENCY: "bright_red"
+            }
+            color = phase_colors.get(phase, "white")
+            self._logs.add_log("SHUTDOWN", f"[{color}]{message}[/{color}]")
+    
+    def _on_shutdown_progress(self, status) -> None:
+        """Handle shutdown progress updates."""
+        if self._logs and status.total_projects > 0:
+            progress = (status.projects_processed / status.total_projects) * 100
+            self._logs.add_log("SHUTDOWN", 
+                f"[dim]Progress: {status.projects_processed}/{status.total_projects} projects ({progress:.0f}%)[/dim]")
 
     def action_toggle_panel(self) -> None:
         """Toggle the running panel collapsed state."""

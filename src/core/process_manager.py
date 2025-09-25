@@ -19,13 +19,17 @@ from pathlib import Path
 from typing import Dict, Optional, Callable, List, Set
 import asyncio
 import sys
-import logging
+# import logging
 import time
 
 from .port_scanner import find_process_by_port, kill_process_tree
+from .resource_registry import ResourceRegistry
+from .node_killer import NodeProcessKiller
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
+from .shutdown_logger import shutdown_logger
+logger = shutdown_logger
 
 @dataclass(slots=True)
 class ManagedProcess:
@@ -43,9 +47,12 @@ class ManagedProcess:
 
 
 class ProcessManager:
-    def __init__(self) -> None:
+    def __init__(self, registry: Optional[ResourceRegistry] = None) -> None:
         self._processes: Dict[str, ManagedProcess] = {}
         self._lock = asyncio.Lock()
+        self.registry = registry or ResourceRegistry()
+        self.node_killer = NodeProcessKiller()
+        self._shutdown_flag = False  # Flag to prevent new operations during shutdown
         # Wait parameters
         self._port_wait_interval = 0.3
         self._port_wait_timeout = 12.0
@@ -63,6 +70,11 @@ class ProcessManager:
         If ``port`` is provided we will attempt to wait until that port is
         observed in a listening state and then capture the real listener pids.
         """
+        # Check shutdown flag
+        if self._shutdown_flag:
+            logger.warning("Cannot start project %s: shutdown in progress", name)
+            return False
+        
         async with self._lock:
             if name in self._processes:
                 logger.info("Project %s already running", name)
@@ -95,14 +107,27 @@ class ProcessManager:
                 port,
             )
 
+            # Register the process with the resource registry
+            await self.registry.register_process(
+                name=name,
+                wrapper_process=process,
+                port=port,
+                path=str(path),
+                command=cmd
+            )
+            
             # Spawn readers immediately
             # Track reader tasks so they can be cancelled prior to loop shutdown
             if process.stdout:
                 t = asyncio.create_task(self._read_stream(name, process.stdout, on_output))
                 mp.reader_tasks.add(t)
+                # Register task with registry
+                await self.registry.register_task(name, t)
             if process.stderr:
                 t = asyncio.create_task(self._read_stream(name, process.stderr, on_output))
                 mp.reader_tasks.add(t)
+                # Register task with registry
+                await self.registry.register_task(name, t)
 
         # Outside lock: optionally wait for port
         if port:
@@ -110,6 +135,7 @@ class ProcessManager:
         return True
 
     async def stop_project(self, name: str) -> bool:
+        # Use the new NodeProcessKiller for better shutdown
         async with self._lock:
             mp = self._processes.get(name)
             if not mp:
@@ -118,6 +144,19 @@ class ProcessManager:
             listener_pids = set(mp.listener_pids)
             port = mp.requested_port
             reader_tasks = set(mp.reader_tasks)
+        
+        # Get resource bundle from registry
+        bundle = await self.registry.get_all_resources(name)
+        
+        # Use NodeProcessKiller for comprehensive cleanup
+        if bundle.process_info or port or listener_pids:
+            await self.node_killer.kill_node_project(
+                name=name,
+                port=port,
+                wrapper_pid=proc.pid,
+                known_node_pids=listener_pids
+            )
+        
         # operate outside lock for termination
         if proc.returncode is None:
             try:
@@ -138,6 +177,8 @@ class ProcessManager:
         for t in reader_tasks:
             if not t.done():
                 t.cancel()
+                # Remove from registry
+                await self.registry.remove_task(name, t)
         if reader_tasks:
             try:
                 await asyncio.gather(*reader_tasks, return_exceptions=True)
@@ -158,6 +199,10 @@ class ProcessManager:
 
         async with self._lock:
             self._processes.pop(name, None)
+        
+        # Clear all resources from registry
+        await self.registry.clear_resources(name)
+        
         logger.info("Stopped project %s", name)
         return True
 
@@ -175,36 +220,50 @@ class ProcessManager:
         
         Should be called before the event loop closes.
         """
-        # Get a snapshot of processes without async lock since we're in cleanup
-        processes_snapshot = dict(self._processes)
+        # Get all project names from both internal dict and registry
+        project_names = set()
+        async with self._lock:
+            project_names.update(self._processes.keys())
+        project_names.update(await self.registry.get_all_project_names())
         
-        for name, mp in processes_snapshot.items():
+        # Clean up each project
+        for name in project_names:
             try:
-                proc = mp.spawn_process
-                # Cancel any reader tasks first
-                for t in list(mp.reader_tasks):
-                    if not t.done():
-                        t.cancel()
-                if mp.reader_tasks:
+                # Get resources from registry
+                bundle = await self.registry.get_all_resources(name)
+                
+                # Cancel reader tasks
+                for task in bundle.tasks:
+                    if not task.done():
+                        task.cancel()
+                
+                if bundle.tasks:
                     try:
-                        await asyncio.gather(*mp.reader_tasks, return_exceptions=True)
+                        await asyncio.gather(*bundle.tasks, return_exceptions=True)
                     except Exception:  # noqa: BLE001
                         pass
                 
-                # If process is still running, try one more terminate/kill
-                if proc.returncode is None:
-                    try:
-                        proc.terminate()
-                        await asyncio.wait_for(proc.wait(), timeout=1.0)
-                    except asyncio.TimeoutError:
+                # Clean up process if exists
+                mp = self._processes.get(name)
+                if mp:
+                    proc = mp.spawn_process
+                    # If process is still running, try one more terminate/kill
+                    if proc.returncode is None:
                         try:
-                            proc.kill()
+                            proc.terminate()
                             await asyncio.wait_for(proc.wait(), timeout=1.0)
                         except asyncio.TimeoutError:
-                            pass  # Give up, but still clean up
+                            try:
+                                proc.kill()
+                                await asyncio.wait_for(proc.wait(), timeout=1.0)
+                            except asyncio.TimeoutError:
+                                pass  # Give up, but still clean up
+                    
+                    # Now safely close the subprocess
+                    self._close_subprocess_safely(proc)
                 
-                # Now safely close the subprocess
-                self._close_subprocess_safely(proc)
+                # Clear resources from registry
+                await self.registry.clear_resources(name)
                 
             except Exception:
                 # Ignore all errors during cleanup
@@ -303,6 +362,11 @@ class ProcessManager:
             mp = self._processes.get(name)
             if mp:
                 mp.listener_pids = captured
+        
+        # Register discovered Node.js PIDs with the resource registry
+        if captured:
+            await self.registry.register_node_pids(name, captured)
+            logger.debug("Registered Node.js PIDs for %s: %s", name, captured)
 
     async def _read_stream(
         self,
