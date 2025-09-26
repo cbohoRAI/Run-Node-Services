@@ -1,4 +1,4 @@
-"""Monitoring screen (Phase 3) - Enhanced version with new shutdown system."""
+"""Monitoring screen (Phase 3) - Enhanced version with health checking."""
 from __future__ import annotations
 
 from textual.screen import Screen
@@ -19,6 +19,7 @@ from src.core.log_collector import LogCollector
 from src.core.project_discovery import NodeProject
 from src.core.shutdown_manager import ShutdownManager, ShutdownPhase
 from src.core.resource_registry import ResourceRegistry
+from src.core.health_checker import HealthChecker
 
 class MonitoringScreen(Screen):
     BINDINGS = [
@@ -78,6 +79,14 @@ class MonitoringScreen(Screen):
         self._panel: Optional[RunningPanel] = None
         self._logs: Optional[SimpleLogViewer] = None
         
+        # Initialize health checker
+        self._health_checker = HealthChecker(
+            check_interval=5.0,
+            startup_grace_period=15.0,
+            timeout=3.0,
+            failure_threshold=3,
+        )
+        
         # Ensure manager has a resource registry
         if not hasattr(manager, 'registry') or manager.registry is None:
             manager.registry = ResourceRegistry()
@@ -111,31 +120,55 @@ class MonitoringScreen(Screen):
         yield Footer()
 
     def on_mount(self) -> None:
-        # Populate panel
+        # Populate panel and register projects for health checking
         for idx, proj_info in enumerate(self._projects):
             if isinstance(proj_info, dict):
                 name = proj_info.get('name')
                 port = proj_info.get('port')
                 branch = proj_info.get('branch')
+                health_path = proj_info.get('healthPath', '/ping')
                 # Prefer explicit short_name, then short, then alias
                 short = proj_info.get('short_name') or proj_info.get('short') or proj_info.get('alias')
             else:
                 name = getattr(proj_info, 'name', str(proj_info))
                 port = getattr(proj_info, 'port', None)
                 branch = getattr(proj_info, 'git_branch', None)
+                health_path = getattr(proj_info, 'health_path', '/ping')
                 short = getattr(proj_info, 'short_name', None)
+            
             # Build nickname mapping (fallback to full name if missing)
             if name:
                 self._name_to_short[name] = (short or name)[:10]  # trim overly long nicknames
                 # Assign color deterministically if not already set
                 if name not in self._project_colors:
                     self._project_colors[name] = self._color_palette[idx % len(self._color_palette)]
-            self._panel.set_project(name, ProjectStatus.RUNNING, port, branch)
+            
+            # Set initial status to STARTING
+            self._panel.set_project(name, ProjectStatus.STARTING, port, branch)
+            
+            # Register project for health checking if we have a port
+            if port and name:
+                self._health_checker.register_project(name, port, health_path)
+        
         # Initialize log viewer project registry (for completeness)
         if self._logs:
             self._logs.set_projects(list(self._name_to_short.keys()))
-        # Register callback
+        
+        # Register health status callback
+        self._health_checker.register_callback(self._on_health_status_change)
+        
+        # Register log callback
         self._log_collector.register_callback(self._on_log_line)
+        
+        # Register nodemon restart detection callback
+        self._log_collector.register_restart_callback(self._on_nodemon_restart)
+        
+        # Register nodemon crash detection callback (supplementary to health checks)
+        self._log_collector.register_crash_callback(self._on_nodemon_crash)
+        
+        # Start health checker
+        asyncio.create_task(self._health_checker.start())
+        
         # DEBUG: emit a test line to verify viewer path
         # if self._logs:
         #     self._logs.add_log("system", Text("(debug) Monitoring screen mounted", style="italic dim"))
@@ -156,11 +189,56 @@ class MonitoringScreen(Screen):
                 self._logs.add_log(project=project, text=txt)
             except Exception as e:
                 print(f"[DEBUG monitor cb ERROR] {e}")
+    
+    def _on_health_status_change(self, project: str, status: ProjectStatus) -> None:
+        """Handle health status changes from the health checker."""
+        if self._panel:
+            self._panel.update_status(project, status)
+        
+        # Log status changes
+        # if self._logs:
+        #     status_messages = {
+        #         ProjectStatus.RUNNING: f"[green]✓[/green] {project} is healthy",
+        #         ProjectStatus.UNHEALTHY: f"[orange1]⚠[/orange1] {project} health check failed",
+        #         ProjectStatus.UNRESPONSIVE: f"[dark_orange]◯[/dark_orange] {project} is unresponsive",
+        #         ProjectStatus.CRASHED: f"[red]✖[/red] {project} has crashed",
+        #         ProjectStatus.RESTARTING: f"[magenta]◆[/magenta] {project} is restarting",
+        #     }
+        #     message = status_messages.get(status, f"{project} status: {status.value}")
+        #     self._logs.add_log("HEALTH", Text(message))
+    
+    def _on_nodemon_restart(self, project: str) -> None:
+        """Handle nodemon restart detection from log output."""
+        # Mark project as restarting in health checker
+        self._health_checker.mark_restarting(project)
+        
+        # Update UI panel
+        if self._panel:
+            self._panel.update_status(project, ProjectStatus.RESTARTING)
+        
+        # Log the restart
+        if self._logs:
+            self._logs.add_log("NODEMON", Text(f"[magenta]◆[/magenta] {project} detected nodemon restart"))
+    
+    def _on_nodemon_crash(self, project: str) -> None:
+        """Handle nodemon crash detection from log output.
+        
+        Note: This is supplementary - health checks are the primary crash detection.
+        """
+        # Mark process as not running (but health checker will do its own detection too)
+        self._health_checker.mark_process_running(project, False)
+        
+        # Log the crash
+        if self._logs:
+            self._logs.add_log("NODEMON", Text(f"[red]✖[/red] {project} nodemon reported crash"))
 
     # Actions ---------------------------------------------------------------
     async def action_quit(self) -> None:
         """Quit the application using enhanced shutdown system."""
         try:
+            # Stop health checker first
+            await self._health_checker.stop()
+            
             # Create shutdown manager
             shutdown_manager = ShutdownManager(
                 self._manager.registry,
@@ -230,12 +308,18 @@ class MonitoringScreen(Screen):
         """Restart selected project (currently restarts all)."""
         for proj_info in self._projects:
             name = proj_info.get('name') if isinstance(proj_info, dict) else proj_info
+            
+            # Mark as restarting in both panel and health checker
             self._panel.update_status(name, ProjectStatus.RESTARTING)
+            self._health_checker.mark_restarting(name)
+            
             success = await self._manager.restart_project(name)
-            if success:
-                self._panel.update_status(name, ProjectStatus.RUNNING)
-            else:
+            
+            # Health checker will update status based on health checks
+            # But if restart failed immediately, mark as crashed
+            if not success:
                 self._panel.update_status(name, ProjectStatus.CRASHED)
+                self._health_checker.mark_process_running(name, False)
 
     async def action_restart_all(self) -> None:
         """Restart all running projects."""
@@ -247,6 +331,7 @@ class MonitoringScreen(Screen):
             name = proj_info.get('name') if isinstance(proj_info, dict) else proj_info
             await self._manager.stop_project(name)
             self._panel.update_status(name, ProjectStatus.STOPPED)
+            self._health_checker.mark_stopped(name)
 
     # New actions -----------------------------------------------------------
     def action_show_all_logs(self) -> None:

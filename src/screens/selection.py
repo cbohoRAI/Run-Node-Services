@@ -199,8 +199,9 @@ class ProjectSelectionScreen(Screen):
                 project_info = {
                     'name': project.name,
                     'port': project.port,
-                        'branch': project.git_branch,
-                        'short_name': getattr(project, 'short_name', None)
+                    'branch': project.git_branch,
+                    'short_name': getattr(project, 'short_name', None),
+                    'healthPath': getattr(project, 'health_path', '/ping'),
                 }
                 started_projects.append(project_info)
 

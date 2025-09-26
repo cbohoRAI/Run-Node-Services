@@ -25,6 +25,7 @@ class NodeProject:
     port: Optional static port defined by user (overrides .env detection when set).
     git_branch: Current git branch name if repo, else None.
     start_command: Command list to launch the project (default: ["npm", "start"]).
+    health_path: HTTP path for health check endpoint (default: "/ping").
     """
     name: str
     path: Path
@@ -32,6 +33,7 @@ class NodeProject:
     git_branch: Optional[str]
     start_command: List[str]
     short_name: Optional[str] = None
+    health_path: str = "/ping"
 
 
 def _read_package_name(package_file: Path) -> Optional[str]:
@@ -119,6 +121,12 @@ def _load_from_config(config_file: Path) -> List[NodeProject]:
         git_branch = _get_git_branch(path)
         if port is None:  # fallback to .env extraction
             port = _extract_port_from_env(path)
+        
+        # Extract health path
+        health_path = entry.get("healthPath", "/ping")
+        if not isinstance(health_path, str):
+            health_path = "/ping"
+        
         projects.append(
             NodeProject(
                 name=name,
@@ -127,6 +135,7 @@ def _load_from_config(config_file: Path) -> List[NodeProject]:
                 git_branch=git_branch,
                 start_command=start_command,
                 short_name=short_name,
+                health_path=health_path,
             )
         )
     projects.sort(key=lambda p: p.name.lower())

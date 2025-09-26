@@ -9,6 +9,8 @@ class ProjectStatus(str, Enum):
     STOPPED = "stopped"
     CRASHED = "crashed"
     RESTARTING = "restarting"
+    UNHEALTHY = "unhealthy"      # Process running but health check fails
+    UNRESPONSIVE = "unresponsive" # Health check timing out
 
 STATUS_COLOR = {
     ProjectStatus.STARTING: "yellow",
@@ -16,6 +18,8 @@ STATUS_COLOR = {
     ProjectStatus.STOPPED: "grey50",
     ProjectStatus.CRASHED: "red",
     ProjectStatus.RESTARTING: "magenta",
+    ProjectStatus.UNHEALTHY: "orange1",
+    ProjectStatus.UNRESPONSIVE: "dark_orange",
 }
 
 __all__ = ["ProjectStatus", "STATUS_COLOR"]

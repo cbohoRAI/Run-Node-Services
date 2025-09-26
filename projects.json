@@ -3,48 +3,56 @@
     "name": "responsive-hub",
     "short_name": "RHUB",
     "path": "~/Bitbucket/responsive-hub",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "responsive-authentication",
     "short_name": "RAS",
     "path": "~/Bitbucket/responsive-authentication-service",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "responsive-rapid-quoting",
     "short_name": "RRQ",
     "path": "~/Bitbucket/responsive-rapid-quoting",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "responsive-rapid-rater",
     "short_name": "RRR",
     "path": "~/Bitbucket/responsive-rapid-rater",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "responsive-task-automator",
     "short_name": "RTA",
     "path": "~/Bitbucket/responsive-task-automator",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "stingray-service",
     "short_name": "SRS",
     "path": "~/Bitbucket/stingray-service",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "verisk-service",
     "short_name": "VRS",
     "path": "~/Bitbucket/verisk-service",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   },
   {
     "name": "tprater",
     "short_name": "TPR",
     "path": "~/Bitbucket/tprater",
+    "healthPath": "/ping",
     "start_command": ["npm", "run", "dev"]
   }
 ]

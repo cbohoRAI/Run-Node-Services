@@ -195,6 +195,8 @@ class RunningPanel(Widget):
             ProjectStatus.CRASHED: "✖",
             ProjectStatus.RESTARTING: "◆",
             ProjectStatus.STARTING: "◌",
+            ProjectStatus.UNHEALTHY: "◆",
+            ProjectStatus.UNRESPONSIVE: "◯",
         }
         return icons.get(status, "·")
 
