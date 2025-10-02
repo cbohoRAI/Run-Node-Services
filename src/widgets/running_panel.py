@@ -75,6 +75,20 @@ class RunningPanel(Widget):
         background: $accent-darken-1;
         color: $text;
     }
+    RunningPanel Button.restart-btn {
+        width: 3;
+        height: 1;
+        min-width: 3;
+        padding: 0;
+        margin: 0;
+        border: none;
+        background: $background;
+        color: $warning;
+    }
+    RunningPanel Button.restart-btn:hover {
+        background: $boost;
+        color: $warning;
+    }
     """
 
     class ProjectSelected(Message):
@@ -83,6 +97,15 @@ class RunningPanel(Widget):
         Attribute ``project`` is the newly selected project or ``None`` for all.
         """
         def __init__(self, project: Optional[str]):
+            self.project = project
+            super().__init__()
+    
+    class RestartProject(Message):
+        """Message emitted when a project restart is requested.
+        
+        Attribute ``project`` is the project name to restart.
+        """
+        def __init__(self, project: str):
             self.project = project
             super().__init__()
 
@@ -150,7 +173,9 @@ class RunningPanel(Widget):
         if not self.collapsed:
             with Vertical(id="rp-body"):
                 for name in sorted(self._statuses.keys()):
-                    yield Button(self._format_project_line(name), id=f"proj-{name}", classes="project-line")
+                    with Horizontal():
+                        yield Button(self._format_project_line(name), id=f"proj-{name}", classes="project-line")
+                        yield Button("⟳", id=f"restart-{name}", classes="restart-btn")
 
     def _get_header_text(self) -> str:
         if self.collapsed:
@@ -219,6 +244,10 @@ class RunningPanel(Widget):
                             btn.add_class("-selected")
                         else:
                             btn.remove_class("-selected")
+        elif bid.startswith("restart-"):
+            name = bid[8:]
+            if name in self._statuses:
+                self.post_message(self.RestartProject(name))
 
     # Selection API ---------------------------------------------------------
     def set_selected(self, project: Optional[str]) -> None:

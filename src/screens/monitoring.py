@@ -20,13 +20,13 @@ from src.core.project_discovery import NodeProject
 from src.core.shutdown_manager import ShutdownManager, ShutdownPhase
 from src.core.resource_registry import ResourceRegistry
 from src.core.health_checker import HealthChecker
+from src.screens.restart_dialog import RestartDialog
 
 class MonitoringScreen(Screen):
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("p", "toggle_panel", "Toggle Panel"),
         ("r", "restart", "Restart"),
-        ("shift+r", "restart_all", "Restart All"),
         ("s", "stop_all", "Stop All"),
         ("a", "show_all_logs", "All Logs"),
     ]
@@ -304,13 +304,37 @@ class MonitoringScreen(Screen):
             self._panel.collapsed = not self._panel.collapsed
             self._panel.refresh(recompose=True)
 
-    async def action_restart(self) -> None:
-        """Restart selected project (currently restarts all)."""
+    def action_restart(self) -> None:
+        """Show restart dialog to select projects to restart."""
+        # Build project info dict for dialog
+        project_info = {}
         for proj_info in self._projects:
             name = proj_info.get('name') if isinstance(proj_info, dict) else proj_info
-            
+            if name and name in self._panel._statuses:
+                project_info[name] = {
+                    'status': self._panel._statuses[name],
+                    'port': self._panel._ports.get(name),
+                    'branch': self._panel._branches.get(name),
+                }
+        
+        # Show dialog with callback
+        def handle_restart_selection(selected_projects: List[str]) -> None:
+            """Handle restart dialog result."""
+            if selected_projects:
+                asyncio.create_task(self._restart_projects(selected_projects))
+        
+        self.app.push_screen(RestartDialog(project_info), handle_restart_selection)
+    
+    async def _restart_projects(self, project_names: List[str]) -> None:
+        """Restart specified projects.
+        
+        Args:
+            project_names: List of project names to restart
+        """
+        for name in project_names:
             # Mark as restarting in both panel and health checker
-            self._panel.update_status(name, ProjectStatus.RESTARTING)
+            if self._panel:
+                self._panel.update_status(name, ProjectStatus.RESTARTING)
             self._health_checker.mark_restarting(name)
             
             success = await self._manager.restart_project(name)
@@ -318,12 +342,9 @@ class MonitoringScreen(Screen):
             # Health checker will update status based on health checks
             # But if restart failed immediately, mark as crashed
             if not success:
-                self._panel.update_status(name, ProjectStatus.CRASHED)
+                if self._panel:
+                    self._panel.update_status(name, ProjectStatus.CRASHED)
                 self._health_checker.mark_process_running(name, False)
-
-    async def action_restart_all(self) -> None:
-        """Restart all running projects."""
-        await self.action_restart()
 
     async def action_stop_all(self) -> None:
         """Stop all running projects."""
@@ -346,5 +367,10 @@ class MonitoringScreen(Screen):
     def on_running_panel_project_selected(self, message: RunningPanel.ProjectSelected) -> None:  # type: ignore[override]
         if self._logs:
             self._logs.set_active_project(message.project)
+    
+    async def on_running_panel_restart_project(self, message: RunningPanel.RestartProject) -> None:  # type: ignore[override]
+        """Handle restart request from running panel."""
+        if message.project:
+            await self._restart_projects([message.project])
 
 __all__ = ["MonitoringScreen"]

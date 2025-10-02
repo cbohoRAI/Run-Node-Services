@@ -18,7 +18,8 @@ import logging
 from types import FrameType
 from typing import Optional, Protocol
 
-logger = logging.getLogger(__name__)
+from .shutdown_logger import shutdown_logger
+logger = shutdown_logger
 
 
 class SupportsStopAll(Protocol):  # pragma: no cover - structural
